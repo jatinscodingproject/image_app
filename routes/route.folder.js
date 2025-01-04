@@ -16,6 +16,8 @@ router.post('/folder' , folderController.folderController.getUserFolder)
 
 router.post('/getFolderContents' , folderController.folderController.getFolderContents)
 
+router.post('/createFolder' , folderController.folderController.createFolder)
+
 
 module.exports = router
 

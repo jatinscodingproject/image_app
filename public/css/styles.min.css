@@ -130,3 +130,27 @@
     border-radius: 50%;
     padding: 5px;
 }
+
+.fas.fa-folder-plus {
+    transition: transform 0.2s;
+}
+.fas.fa-folder-plus:hover {
+    transform: scale(1.2);
+}
+.folder-icon {
+    transition: transform 0.3s, color 0.3s;
+}
+
+.folder-icon:hover {
+    transform: scale(1.2); /* Slight zoom effect */
+    color: #007bff;
+}
+
+/* Optional: Add padding between text and icon */
+.d-flex.justify-content-between {
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    background-color: #f9f9f9;
+}
+

@@ -7,6 +7,7 @@ const cors = require('cors');
 const sequelize = require('./config/db');
 const model = require('./model/index');
 require('dotenv').config();
+const fs = require('fs')
 
 const routes = require('./routes/index');
 const exp = require('constants');
@@ -17,6 +18,18 @@ app.use(express.json())
 app.use(express.static(path.join(__dirname , 'public')))
 
 app.use("/api", routes)
+app.use('/imageapp', express.static(path.resolve('F:/imageapp')));
+
+app.use('/imageapp', (req, res, next) => {
+    const fullPath = path.join('F:/imageapp/', req.path);
+    console.log(`Requested File Path: ${fullPath}`);
+    if (fs.existsSync(fullPath)) {
+        res.sendFile(fullPath);
+    } else {
+        console.log('File not found');
+        res.status(404).send('File not found');
+    }
+});
 
 const port = process.env.PORT || 3000
 

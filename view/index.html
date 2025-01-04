@@ -132,15 +132,13 @@
                 <div class="folder-content"></div>
             `;
 
-					folderItem.dataset.path = folder.path; // Save the path for later use
+					folderItem.dataset.path = folder.path;
 					parentElement.appendChild(folderItem);
 
-					// Add a click event to fetch subfolders dynamically when the folder is clicked
 					folderItem.querySelector('.folder-name').addEventListener('click', async () => {
 						const subfolderList = folderItem.querySelector('.subfolder-list');
 
 						if (!subfolderList) {
-							// Create a new subfolder container
 							const newSubfolderList = document.createElement('div');
 							newSubfolderList.classList.add('subfolder-list');
 
@@ -166,11 +164,9 @@
 
 							folderItem.appendChild(newSubfolderList);
 						} else {
-							// Toggle visibility of existing subfolders
 							subfolderList.classList.toggle('show');
 						}
 
-						// Change the folder icon when clicked (only if it’s a folder)
 						const folderIcon = folderItem.querySelector('.folder-name i');
 						folderIcon.classList.toggle('fa-folder-open');
 						folderIcon.classList.toggle('fa-folder');
@@ -181,24 +177,33 @@
 			}
 		}
 
+		let folderHTML;
+
 		function renderFolders(folders, parentElement) {
 			folders.forEach(folder => {
 				const folderItem = document.createElement('div');
 				folderItem.classList.add('folder-item');
 
-				let folderHTML = `
+				console.log(folder)
+				console.log(folder.type)
+				console.log(folder.path)
+
+				folderHTML = `
             <div class="folder-name">
                 <i class="fas fa-folder"></i> ${folder.name}
             </div>
         `;
 
-				if (folder.type === 'file' && folder.fileType === 'image') {
+				// console.log(folderHTML)
+
+				if (folder.type === 'file') {
+					console.log(9999999999)
 					folderHTML = `
                 <div class="folder-name">
                     <i class="fas fa-image"></i> ${folder.name}
                 </div>
             `;
-
+					console.log(folder.path)
 					folderItem.dataset.path = folder.path;
 					folderItem.addEventListener('click', () => {
 						displayThumbnail(folder.path);
@@ -251,18 +256,36 @@
 		}
 
 		function displayThumbnail(filePath) {
+			const relativePath = filePath.replace(/^F:/, '').replace(/\\/g, '/');
+			console.log('Relative Path After Replacement:', relativePath);
+
+			const fullURL = relativePath;
+			console.log('Full URL:', fullURL);
+
 			const thumbnailContainer = document.createElement('div');
 			thumbnailContainer.classList.add('thumbnail-container');
+
+			// Step 4: Create the image element
+			console.log(111111111)
 			const imgElement = document.createElement('img');
-			imgElement.src = filePath;
+			console.log(99999999999)
+			imgElement.src = relativePath;
+			console.log(9999999999999)
+			console.log(imgElement.src)
 			imgElement.alt = 'Image Thumbnail';
 			imgElement.classList.add('thumbnail');
+
 			thumbnailContainer.appendChild(imgElement);
 
-			const folderContent = document.querySelector(`[data-path="${filePath}"] .folder-content`);
-			folderContent.appendChild(thumbnailContainer);
+			const thumbnailView = document.getElementById('thumbnailView');
+			if (!thumbnailView) {
+				console.error('Thumbnail view not found!');
+				return;
+			}
 
+			thumbnailView.appendChild(thumbnailContainer);
 		}
+
 
 
 

@@ -4,17 +4,14 @@ const path = require('path');
 const model = require('../model/index');
 const sequelize = require('../config/db');
 
-const BASE_DIRECTORY = path.resolve(__dirname, '../../');
+const BASE_DIRECTORY = path.resolve('./serverAssets');
 
 function getAllParentFolders(baseDir) {
+    // console.log(baseDir)
     return fs.readdirSync(baseDir).filter((item) => {
         try {
             const fullPath = path.join(baseDir, item);
-            return (
-                fs.statSync(fullPath).isDirectory() &&
-                item.startsWith('PARENT_FOLDER') &&
-                /\d+$/.test(item)
-            );
+            return fs.statSync(fullPath).isDirectory(); // Accept any directory name
         } catch (error) {
             console.warn(`Error accessing ${item}: ${error.message}`);
             return false;
@@ -22,44 +19,6 @@ function getAllParentFolders(baseDir) {
     });
 }
 
-function getFilesAndFolders(directoryPath) {
-    // console.log(directoryPath)
-    let results = [];
-
-    if (!fs.existsSync(directoryPath)) {
-        throw new Error(`Directory not found: ${directoryPath}`);
-    }
-
-    const list = fs.readdirSync(directoryPath);
-
-    list.forEach((file) => {
-        try {
-            // console.log(file)
-            const fullPath = path.join(directoryPath, file);
-
-            const stat = fs.statSync(fullPath);
-
-            if (stat.isDirectory()) {
-                results.push({
-                    type: 'folder',
-                    name: file,
-                    path: fullPath,
-                    children: getFilesAndFolders(fullPath),
-                });
-            } else {
-                results.push({
-                    type: 'file',
-                    name: file,
-                    path: fullPath,
-                });
-            }
-        } catch (error) {
-            console.warn(`Error accessing ${file} in ${directoryPath}: ${error.message}`);
-        }
-    });
-
-    return results;
-}
 
 function getFolderHierarchy(directoryPath) {
     if (!fs.existsSync(directoryPath)) {
@@ -69,14 +28,13 @@ function getFolderHierarchy(directoryPath) {
     const items = fs.readdirSync(directoryPath, { withFileTypes: true });
 
     const results = items
-        .filter(dirent => dirent.isDirectory() && /^PARENT_FOLDER\d{1,4}$/i.test(dirent.name))
+        .filter(dirent => dirent.isDirectory()) // Accept any folder name
         .map(dirent => ({
             name: dirent.name,
             path: path.join(directoryPath, dirent.name),
             type: 'folder',
             children: getFolderHierarchy(path.join(directoryPath, dirent.name)), // Recursive fetch
         }));
-
 
     return results;
 }
@@ -100,25 +58,25 @@ const getFolderContents = (folderPath) => {
     return [];
 };
 
-function getParentFolders(baseDir) {
+function createFolders(baseDirectory, folderName) {
+    if (!folderName) {
+        throw new Error('Folder name is required.');
+    }
+
+    const targetDirectory = path.join(baseDirectory, folderName);
+
     try {
-        // Read directory contents and filter for matching names
-        const folders = fs.readdirSync(baseDir, { withFileTypes: true })
-            .filter(dirent =>
-                dirent.isDirectory() &&
-                /^PARENT_FOLDER\d{1,4}$/i.test(dirent.name) // Match "PARENT_FOLDER" followed by 1 to 4 digits
-            )
-            .map(dirent => ({
-                type: 'folder',
-                name: dirent.name,
-                path: path.join(baseDir, dirent.name),
-            }));
-        return folders;
+        if (fs.existsSync(targetDirectory)) {
+            return `Folder already exists: ${targetDirectory}`;
+        }
+
+        fs.mkdirSync(targetDirectory, { recursive: true });
+        return `Folder created successfully: ${targetDirectory}`;
     } catch (error) {
-        console.error(`Error reading directory: ${error.message}`);
-        return [];
+        throw new Error(`Error creating folder: ${error.message}`);
     }
 }
+
 
 async function getSubfolders(directoryPath) {
     const filesAndFolders = await fs.promises.readdir(directoryPath, { withFileTypes: true });
@@ -132,7 +90,9 @@ const folderServices = {
     async getfolderstructure(req, res) {
         const t = await sequelize.transaction()
         try {
+            // console.log(BASE_DIRECTORY)
             const parentFolders = getAllParentFolders(BASE_DIRECTORY);
+            // console.log(parentFolders)
             const folderStructures = await Promise.all(
                 parentFolders.map(async (parentFolder) => {
                     const parentFolderPath = path.join(BASE_DIRECTORY, parentFolder);
@@ -177,6 +137,7 @@ const folderServices = {
             return { msg: "Folder added in DB", result: "pass", folderStructures }
         } catch (error) {
             if (t) await t.rollback();
+            console.error(error)
             return { error: 'An error occurred while fetching folder structure', result: "fail" };
         }
     },
@@ -320,7 +281,7 @@ const folderServices = {
                     attributes: ['folderpath', 'hasAccess']
                 });
 
-                console.log(folderPermissions);
+                // console.log(folderPermissions);
 
                 if (folderPermissions.length === 0) {
                     return { msg: "No folder access found for this admin", result: "nofound" };
@@ -328,28 +289,25 @@ const folderServices = {
 
                 const folderPathsWithAccess = folderPermissions.map(permission => permission.folderpath);
 
-                console.log("fff", folderPathsWithAccess);
+                // console.log("fff", folderPathsWithAccess);
 
                 // Replace 'F:\' with '../../' and '\\' with '/'
                 const updatedFolderPaths = folderPathsWithAccess.map(folderPath =>
                     folderPath.replace('F:\\', '../../').replace(/\\/g, '/')
                 );
 
-                console.log("Updated folder paths:", updatedFolderPaths);
+                // console.log("Updated folder paths:", updatedFolderPaths);
 
-                // Ensure the paths are absolute by joining with the base directory
                 const absoluteFolderPaths = updatedFolderPaths.map(folderPath =>
                     path.resolve(BASE_DIRECTORY, folderPath)
                 );
 
-                console.log("Absolute folder paths:", absoluteFolderPaths);
+                // console.log("Absolute folder paths:", absoluteFolderPaths);
 
-                // Now pass the absolute paths to getFolderHierarchy
                 const folderStructure = absoluteFolderPaths.map(folderPath => getFolderHierarchy(folderPath));
 
-                console.log('Folder structure:', folderStructure);
+                // console.log('Folder structure:', folderStructure);
 
-                // Return the folder structure for the admin
                 return { msg: "Folders for admin with access", result: "pass", folderStructure };
 
 
@@ -396,6 +354,12 @@ const folderServices = {
                 msg: 'No contents found'
             });
         }
+    },
+    async createFolder(req, res) {
+        const { folderName , username } = req.body;
+        console.log(req.body)
+
+        const foldercreation = createFolders(BASE_DIRECTORY , folderName)
     }
 };
 

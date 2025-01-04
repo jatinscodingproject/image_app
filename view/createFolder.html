@@ -4,7 +4,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, shrink-to-fit=no">
-    <title>setpermission - ImageApp</title>
+    <title>permission - ImageApp</title>
     <link rel="stylesheet" href="/bootstrap/css/bootstrap.min.css?h=39f612d0af5b74e3058ab6d89e114e6a">
     <link rel="stylesheet" href="/fonts/fontawesome-all.min.css?h=72206c8bac47c259a95e6473d0eef779">
     <link rel="stylesheet" href="/css/styles.min.css?h=95223f31c9e9c1c7392f5cd8709f92a7">
@@ -52,20 +52,31 @@
                     </div>
                 </nav>
                 <div class="container-fluid">
-                    <h3 class="text-dark mb-4">Permission</h3>
+                    <h3 class="text-dark mb-4">Create Folder</h3>
                     <div class="card shadow">
                         <div class="card-header py-3">
-                            <p class="text-primary m-0 fw-bold">Permission</p>
+                            <p class="text-primary m-0 fw-bold">Folder Creation</p>
                         </div>
                         <div class="card-body">
                             <div class="row">
+                                <div class="col mb-3 d-flex justify-content-between align-items-center">
+                                    <!-- Text aligned to the left -->
+                                    <span class="fw-bold" style="color: black;">Create New Parent Folder</span>
+                                    <!-- Icon aligned to the right -->
+                                    <i class="fas fa-folder-plus text-primary fs-4 folder-icon" style="cursor: pointer;"
+                                        data-bs-toggle="modal" data-bs-target="#createFolderModal"></i>
+                                </div>
+                            </div>
+                            <div class="row">
                                 <div class="col mb-3">
+                                    <h5 class="text-center" style="color: black;">PARENT FOLDER</h5>
                                     <ul id="parentfolder">
 
                                     </ul>
                                 </div>
                             </div>
                         </div>
+
                     </div>
                 </div>
             </div>
@@ -76,44 +87,62 @@
             </footer>
         </div><a class="border rounded d-inline scroll-to-top" href="#page-top"><i class="fas fa-angle-up"></i></a>
     </div>
-
-    <div class="modal fade" id="accessModal" tabindex="-1" aria-labelledby="accessModalLabel" aria-hidden="true">
+    <!-- parent folder modal -->
+    <div class="modal fade" id="createFolderModal" tabindex="-1" aria-labelledby="createFolderModalLabel"
+        aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="accessModalLabel">Manage Access</h5>
+                    <h5 class="modal-title" id="createFolderModalLabel">Create New Folder</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
-                    <ul id="userList" class="list-group">
-                        <!-- User checkboxes will be appended here -->
-                    </ul>
+                    <form id="createFolderForm">
+                        <div class="mb-3">
+                            <label for="folderName" class="form-label">Parent Folder Name</label>
+                            <input type="text" class="form-control" id="folderName" placeholder="Enter folder name"
+                                required>
+                        </div>
+                    </form>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                    <button type="button" class="btn btn-primary" id="saveAccess">Give Access</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" form="createFolderForm" class="btn btn-primary">Create</button>
                 </div>
             </div>
         </div>
     </div>
-
-    <div class="modal fade" id="errorModal" tabindex="-1" aria-labelledby="errorModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered">
+    <!-- children folder modal -->
+    <div class="modal fade" id="createchildFolderModal" tabindex="-1" aria-labelledby="createchildFolderModalLabel"
+        aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered ">
             <div class="modal-content">
                 <div class="modal-header">
+                    <h5 class="modal-title" id="createchildFolderModalLabel">Create New Child Folder</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-                <div class="modal-body" id="errorMessage" style="font-weight: bold; color: black;">
-                    <!-- Error message will be dynamically inserted here -->
+                <div class="modal-body">
+                    <form id="createchildFolderForm">
+                        <div class="mb-3">
+                            <label for="childfolderName" class="form-label">child Folder Name</label>
+                            <input type="text" class="form-control" id="childfolderName" placeholder="Enter folder name"
+                                required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="childfolderNameFTP" class="form-label">Create FTP User</label>
+                            <input type="text" class="form-control" id="FTPchildfolderName" placeholder="Enter FTP User Name"
+                                required>
+                        </div>
+                    </form>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" form="createchildFolderForm" class="btn btn-primary">Create</button>
                 </div>
             </div>
         </div>
     </div>
-
-    <!-- <script src="/js/jquery.min.js?h=f56d3e84f8f4fb156548d390a8a85d8e"></script> -->
+    <script src="/js/jquery.min.js?h=f56d3e84f8f4fb156548d390a8a85d8e"></script>
     <script src="/bootstrap/js/bootstrap.min.js?h=374d178d651fa0eaf680a1fa7b40c788"></script>
     <script src="/js/script.min.js?h=bdf36300aae20ed8ebca7e88738d5267"></script>
     <script src="/js/chart.min.min.js?h=bd9843d1866f45d1406a12f7de05f9ff"></script>
@@ -121,30 +150,32 @@
     <script src="/js/logout.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', async function () {
-            const pathname = window.location.pathname; // Get the path part of the URL
-            const parentname = pathname.split('/').pop(); // Extract the last segment
-            const parentdata = {
-                parentname: parentname
-            }
             try {
-                const res = await fetch('/api/childfolder', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(parentdata)
-                })
+                const res = await fetch('/api/folder-structure')
                 const data = await res.json()
                 if (data.result === "pass") {
-                    populatelist(data.childfolder)
+
                 }
             } catch {
-                showErrorPopup('Something Went Wrong')
+
             }
 
+            fetchParent()
         })
 
+        async function fetchParent() {
+            try {
+                const res = await fetch('/api/fetchParent')
+                const data = await res.json()
+                console.log(data)
+                if (data.result === "pass") {
+                    const parentdata = data.existingParentFolders
+                    populatelist(parentdata)
+                }
+            } catch {
 
+            }
+        }
 
         function populatelist(parentdata) {
             const parentfolder = document.getElementById('parentfolder');
@@ -153,105 +184,71 @@
 
             parentdata.forEach(element => {
                 const listItem = document.createElement('li');
-                listItem.classList.add('list-group-item', 'd-flex', 'justify-content-between', 'align-items-center', 'mb-3', 'p-3');
+                listItem.classList.add('list-group-item', 'd-flex', 'justify-content-between', 'align-items-center', 'mb-3', 'p-3'); // Flexbox layout for left-right alignment
                 listItem.style.color = "black"
-                
+                console.log(element.path)
+
                 const folderName = document.createElement('span');
-                folderName.textContent = element.name;
+                folderName.textContent = element.parentname;
                 listItem.appendChild(folderName);
 
                 const button = document.createElement('button');
-                button.classList.add('btn', 'btn-primary');
-                button.textContent = 'Manage Access';
+                button.classList.add('btn', 'btn');
+                button.innerHTML = `<i class="fas fa-folder-plus text-primary fs-4 folder-icon" style="cursor: pointer;"></i>`;
+                button.setAttribute('data-bs-toggle', 'modal');
+                button.setAttribute('data-bs-target', '#createchildFolderModal');
 
-                button.addEventListener('click', () => openAccessModal(element.id));
                 listItem.appendChild(button);
+
+                parentfolder.appendChild(listItem);
+
+                listItem.appendChild(link);
+
+                const hr = document.createElement('hr');
+                listItem.appendChild(hr);
 
                 parentfolder.appendChild(listItem);
             });
         }
+        document.getElementById('createFolderForm').addEventListener('submit', async function (e) {
+            e.preventDefault();
 
-        async function openAccessModal(folderName) {
-            const modal = new bootstrap.Modal(document.getElementById('accessModal'));
-            const userList = document.getElementById('userList');
-            userList.innerHTML = '';
-
-            try {
-                const response = await fetch(`/api/fetchAdminAndCheckAccess/${encodeURIComponent(folderName)}`);
-                const data = await response.json();
-                // console.log(data)
-                data.admins.forEach(admin => {
-                    const listItem = document.createElement('li');
-                    listItem.classList.add('list-group-item', 'd-flex', 'justify-content-between', 'align-items-center');
-
-                    const username = document.createElement('span');
-                    username.textContent = admin.FullName;
-                    listItem.appendChild(username);
-
-                    const checkbox = document.createElement('input');
-                    checkbox.type = 'checkbox';
-                    checkbox.checked = admin.hasAccess;
-                    checkbox.dataset.Username = admin.Username;
-                    checkbox.dataset.folderName = folderName;
-                    listItem.appendChild(checkbox);
-
-                    userList.appendChild(listItem);
-                });
-
-                modal.show();
-            } catch (error) {
-                showErrorPopup('Error fetching admin data:');
+            const folderName = document.getElementById('folderName').value.trim();
+            const username = document.getElementById('UserName').textContent.trim();
+            if (!folderName) {
+                alert('Please enter a valid folder name.');
+                return;
             }
-        }
 
-        document.getElementById('saveAccess').addEventListener('click', saveChanges)
+            const data = {
+                folderName: folderName,
+                username: username
+            }
 
-        async function saveChanges() {
-            const userList = document.getElementById('userList').querySelectorAll('input[type="checkbox"]');
-            
-            const updates = Array.from(userList).map(checkbox => ({
-                username: checkbox.dataset.Username,
-                folderName: checkbox.dataset.folderName,
-                hasAccess: checkbox.checked
-            }));
 
 
             try {
-                const response = await fetch('/api/saveFolderPermissions', {
+                const response = await fetch('/api/createFolder', {
                     method: 'POST',
                     headers: {
-                        'Content-Type': 'application/json'
+                        'Content-Type': 'application/json',
                     },
-                    body: JSON.stringify({ updates })
+                    body: JSON.stringify(data),
                 });
 
-                const data = await response.json();
-                if (data.result === 'success') {
-                    showErrorPopup('Access Set Successfully');
-                    const accessModal = new bootstrap.Modal(document.getElementById('accessModal'));
-                    accessModal.hide();
+                const result = await response.json();
+                if (result.success) {
+                    alert('Folder created successfully!');
+                    location.reload();
                 } else {
-                    showErrorPopup('Unable to set Access:');
-                    const accessModal = new bootstrap.Modal(document.getElementById('accessModal'));
-                    accessModal.hide()
+                    alert('Failed to create folder: ' + result.message);
                 }
             } catch (error) {
-                showErrorPopup('Something Went Wrong');
+                console.error('Error:', error);
+                alert('An error occurred while creating the folder.');
             }
-        }
-
-        function showErrorPopup(message) {
-            const errorMessageElement = document.getElementById('errorMessage');
-            errorMessageElement.textContent = message;
-
-            const errorModal = new bootstrap.Modal(document.getElementById('errorModal'));
-            errorModal.show();
-        }
-
-
-
+        });
     </script>
-
 </body>
 
 </html>

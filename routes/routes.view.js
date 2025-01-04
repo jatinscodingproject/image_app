@@ -39,4 +39,8 @@ router.get('/addUser',(req,res) => {
     res.sendFile(path.join(__dirname , '../view/addUser.html'))
 })
 
+router.get('/Createfolder',(req,res) => {
+    res.sendFile(path.join(__dirname , '../view/createFolder.html'))
+})
+
 module.exports = router
