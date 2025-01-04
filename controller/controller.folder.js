@@ -12,6 +12,10 @@ const folderController = {
         const response = await services.folderServices.fetchParentfolder(req ,res);
         return res.status(HttpStatus.CREATED).json(response);
     },
+    async fetchsubParentfolder(req,res){
+        const response = await services.folderServices.getchildfolderstructure(req ,res);
+        return res.status(HttpStatus.CREATED).json(response);
+    },
     async getChild(req,res){
         const response = await services.folderServices.getchild(req ,res);
         return res.status(HttpStatus.CREATED).json(response);

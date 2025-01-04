@@ -4,6 +4,8 @@ const folderController = require('../controller/controller.folder')
 
 router.get('/folder-structure', folderController.folderController.fetchfolder);
 
+router.get('/subfolder' , folderController.folderController.fetchsubParentfolder);
+
 router.get('/fetchParent', folderController.folderController.fetchParentfolder);
 
 router.post('/childfolder', folderController.folderController.getChild);

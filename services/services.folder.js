@@ -11,6 +11,7 @@ function getAllParentFolders(baseDir) {
     return fs.readdirSync(baseDir).filter((item) => {
         try {
             const fullPath = path.join(baseDir, item);
+            // console.log(fullPath)
             return fs.statSync(fullPath).isDirectory(); // Accept any directory name
         } catch (error) {
             console.warn(`Error accessing ${item}: ${error.message}`);
@@ -80,7 +81,7 @@ function createFolders(baseDirectory, folderName) {
 
 async function getSubfolders(directoryPath) {
     const filesAndFolders = await fs.promises.readdir(directoryPath, { withFileTypes: true });
-
+    // console.log(filesAndFolders)
     return filesAndFolders
         .filter((item) => item.isDirectory())
         .map((folder) => folder.name);
@@ -88,11 +89,52 @@ async function getSubfolders(directoryPath) {
 
 const folderServices = {
     async getfolderstructure(req, res) {
+        const t = await sequelize.transaction();
+        try {
+            const parentFolders = getAllParentFolders(BASE_DIRECTORY);
+    
+            const folderStructures = await Promise.all(
+                parentFolders.map(async (parentFolder) => {
+                    const parentFolderPath = path.join(BASE_DIRECTORY, parentFolder);
+    
+                    const existingFolder = await model.Folder.findOne({
+                        where: { path: parentFolderPath },
+                    });
+    
+                    if (existingFolder) {
+                        return {
+                            folderName: parentFolder,
+                            folderId: existingFolder.id,
+                        };
+                    }
+
+                    const Folder = await model.Folder.create({
+                        name: parentFolder,
+                        path: parentFolderPath,
+                        parentname: parentFolder,
+                    });
+    
+                    return {
+                        folderName: parentFolder,
+                        folderId: Folder.id,
+                    };
+                })
+            );
+            await t.commit();
+    
+            return { msg: "Parent folders added in DB", result: "pass", folderStructures };
+        } catch (error) {
+            if (t) await t.rollback();
+            console.error(error);
+    
+            return { error: 'An error occurred while fetching folder structure', result: "fail" };
+        }
+    },
+
+    async getchildfolderstructure(req, res) {
         const t = await sequelize.transaction()
         try {
-            // console.log(BASE_DIRECTORY)
             const parentFolders = getAllParentFolders(BASE_DIRECTORY);
-            // console.log(parentFolders)
             const folderStructures = await Promise.all(
                 parentFolders.map(async (parentFolder) => {
                     const parentFolderPath = path.join(BASE_DIRECTORY, parentFolder);
@@ -103,7 +145,7 @@ const folderServices = {
                         level1Folders.map(async (subFolder) => {
                             const subFolderPath = path.join(parentFolderPath, subFolder);
 
-                            const existingFolder = await model.Folder.findOne({
+                            const existingFolder = await model.subFolder.findOne({
                                 where: { path: subFolderPath },
                             });
 
@@ -114,7 +156,7 @@ const folderServices = {
                                 };
                             }
 
-                            const Folder = await model.Folder.create({
+                            const Folder = await model.subFolder.create({
                                 name: subFolder,
                                 path: subFolderPath,
                                 parentname: parentFolder,
@@ -147,13 +189,14 @@ const folderServices = {
         // const t = sequelize.transaction()
         try {
             const existingParentFolders = await model.Folder.findAll({
-                attributes: ['parentname'],
-                group: ['parentname'],
+                attributes: ['parentname', 'path']
             });
             // await t.commit()
+            console.log(existingParentFolders)
             return { msg: "parent name fetched", result: "pass", existingParentFolders }
         } catch (error) {
             // if(t) await t.rollback()
+            console.log(error)
             return { error: 'An error occurred while fetching or comparing parent folder names from the database', result: "fail" };
         }
     },
@@ -161,7 +204,7 @@ const folderServices = {
     async getchild(req, res) {
         try {
             const { parentname } = req.body
-            const childfolder = await model.Folder.findAll({
+            const childfolder = await model.subFolder.findAll({
                 attributes: ['name', 'path', 'parentname', 'id'],
                 where: { parentname: parentname }
             })

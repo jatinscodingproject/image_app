@@ -4,9 +4,10 @@ const Page = require('../model/model.page');
 const PageAccess = require('../model/model.pageaccess');
 const FolderPermission = require('../model/model.folderPermission');
 const Folder = require('../model/model.folder');
+const subFolder = require('../model/model.subflder')
 
-Folder.hasMany(FolderPermission, { foreignKey: 'folderId' });
-FolderPermission.belongsTo(Folder, { foreignKey: 'folderId' });
+subFolder.hasMany(FolderPermission, { foreignKey: 'subfolderId' });
+FolderPermission.belongsTo(subFolder, { foreignKey: 'subfolderId' });
 
 module.exports = {
     User,
@@ -15,4 +16,5 @@ module.exports = {
     PageAccess,
     FolderPermission,
     Folder,
+    subFolder,
 };

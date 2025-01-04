@@ -130,8 +130,8 @@
                         </div>
                         <div class="mb-3">
                             <label for="childfolderNameFTP" class="form-label">Create FTP User</label>
-                            <input type="text" class="form-control" id="FTPchildfolderName" placeholder="Enter FTP User Name"
-                                required>
+                            <input type="text" class="form-control" id="FTPchildfolderName"
+                                placeholder="Enter FTP User Name" required>
                         </div>
                     </form>
                 </div>
@@ -160,8 +160,22 @@
 
             }
 
+            fetchsub()
+
             fetchParent()
         })
+
+        async function fetchsub() {
+            try {
+                const res = await fetch('/api/subfolder')
+                const data = await res.json()
+                if (data.result === "pass") {
+
+                }
+            } catch {
+
+            }
+        }
 
         async function fetchParent() {
             try {
@@ -182,11 +196,13 @@
 
             parentfolder.innerHTML = '';
 
-            parentdata.forEach(element => {
+
+            parentdata.forEach((element, index) => {
+                console.log(`Rendering item ${index + 1}:`, element);
+
                 const listItem = document.createElement('li');
-                listItem.classList.add('list-group-item', 'd-flex', 'justify-content-between', 'align-items-center', 'mb-3', 'p-3'); // Flexbox layout for left-right alignment
-                listItem.style.color = "black"
-                console.log(element.path)
+                listItem.classList.add('list-group-item', 'd-flex', 'justify-content-between', 'align-items-center', 'mb-3', 'p-3');
+                listItem.style.color = "black";
 
                 const folderName = document.createElement('span');
                 folderName.textContent = element.parentname;
@@ -197,12 +213,7 @@
                 button.innerHTML = `<i class="fas fa-folder-plus text-primary fs-4 folder-icon" style="cursor: pointer;"></i>`;
                 button.setAttribute('data-bs-toggle', 'modal');
                 button.setAttribute('data-bs-target', '#createchildFolderModal');
-
                 listItem.appendChild(button);
-
-                parentfolder.appendChild(listItem);
-
-                listItem.appendChild(link);
 
                 const hr = document.createElement('hr');
                 listItem.appendChild(hr);

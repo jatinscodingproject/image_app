@@ -93,9 +93,22 @@
 			} catch {
 
 			}
-
+			fetchsub()
 			fetchParent()
+			
 		})
+
+		async function fetchsub(){
+			try {
+				const res = await fetch('/api/subfolder')
+				const data = await res.json()
+				if (data.result === "pass") {
+
+				}
+			} catch {
+
+			}
+		}
 
 		async function fetchParent() {
 			try {
