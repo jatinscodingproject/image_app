@@ -39,9 +39,13 @@ const folderController = {
     async createFolder(req,res){
         const response = await services.folderServices.createFolder(req ,res);
         return res.status(HttpStatus.CREATED).json(response);
+    },
+    async createchildFolder(req,res){
+        const response = await services.folderServices.createchildFolder(req ,res);
+        return res.status(HttpStatus.CREATED).json(response);
     }
 }
 
 module.exports = {
     folderController
-}
+} 

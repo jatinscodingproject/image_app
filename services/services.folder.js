@@ -7,14 +7,11 @@ const sequelize = require('../config/db');
 const BASE_DIRECTORY = path.resolve('./serverAssets');
 
 function getAllParentFolders(baseDir) {
-    // console.log(baseDir)
     return fs.readdirSync(baseDir).filter((item) => {
         try {
             const fullPath = path.join(baseDir, item);
-            // console.log(fullPath)
-            return fs.statSync(fullPath).isDirectory(); // Accept any directory name
+            return fs.statSync(fullPath).isDirectory();
         } catch (error) {
-            console.warn(`Error accessing ${item}: ${error.message}`);
             return false;
         }
     });
@@ -29,30 +26,28 @@ function getFolderHierarchy(directoryPath) {
     const items = fs.readdirSync(directoryPath, { withFileTypes: true });
 
     const results = items
-        .filter(dirent => dirent.isDirectory()) // Accept any folder name
+        .filter(dirent => dirent.isDirectory())
         .map(dirent => ({
             name: dirent.name,
             path: path.join(directoryPath, dirent.name),
             type: 'folder',
-            children: getFolderHierarchy(path.join(directoryPath, dirent.name)), // Recursive fetch
+            children: getFolderHierarchy(path.join(directoryPath, dirent.name)),
         }));
 
     return results;
 }
 
 const getFolderContents = (folderPath) => {
-    // Check if the folder exists
     if (fs.existsSync(folderPath)) {
         const contents = fs.readdirSync(folderPath);
 
-        // Return the contents of the folder as an array
         return contents.map(item => {
             const fullPath = path.join(folderPath, item);
             return {
                 name: item,
                 path: fullPath,
                 type: fs.statSync(fullPath).isDirectory() ? 'folder' : 'file',
-                children: fs.statSync(fullPath).isDirectory() ? [] : null // If it's a folder, check for its children
+                children: fs.statSync(fullPath).isDirectory() ? [] : null
             };
         });
     }
@@ -81,7 +76,6 @@ function createFolders(baseDirectory, folderName) {
 
 async function getSubfolders(directoryPath) {
     const filesAndFolders = await fs.promises.readdir(directoryPath, { withFileTypes: true });
-    // console.log(filesAndFolders)
     return filesAndFolders
         .filter((item) => item.isDirectory())
         .map((folder) => folder.name);
@@ -125,8 +119,6 @@ const folderServices = {
             return { msg: "Parent folders added in DB", result: "pass", folderStructures };
         } catch (error) {
             if (t) await t.rollback();
-            console.error(error);
-    
             return { error: 'An error occurred while fetching folder structure', result: "fail" };
         }
     },
@@ -179,24 +171,19 @@ const folderServices = {
             return { msg: "Folder added in DB", result: "pass", folderStructures }
         } catch (error) {
             if (t) await t.rollback();
-            console.error(error)
             return { error: 'An error occurred while fetching folder structure', result: "fail" };
         }
     },
 
 
     async fetchParentfolder(req, res) {
-        // const t = sequelize.transaction()
         try {
             const existingParentFolders = await model.Folder.findAll({
                 attributes: ['parentname', 'path']
             });
-            // await t.commit()
-            console.log(existingParentFolders)
+            
             return { msg: "parent name fetched", result: "pass", existingParentFolders }
         } catch (error) {
-            // if(t) await t.rollback()
-            console.log(error)
             return { error: 'An error occurred while fetching or comparing parent folder names from the database', result: "fail" };
         }
     },
@@ -223,13 +210,9 @@ const folderServices = {
                 where: { AccountTypeID: 2 }
             })
 
-
             const folderPermissions = await model.FolderPermission.findAll({
                 where: { folderId: id }
             });
-
-            // console.log("fff", folderPermissions)
-
 
             const permissionMap = folderPermissions.reduce((map, permission) => {
                 map[permission.Username] = permission.hasAccess;
@@ -302,7 +285,6 @@ const folderServices = {
         const { username } = req.body;
 
         try {
-            // Find the user based on their username
             const user = await model.User.findOne({
                 where: { Username: username }
             });
@@ -311,20 +293,16 @@ const folderServices = {
                 return { msg: "User not found", result: "fail" };
             }
 
-            // For Superadmin (AccountTypeID 1), return all folder structure
             if (user.AccountTypeID === 1) {
                 const folderStructure = getFolderHierarchy(BASE_DIRECTORY);
                 return { msg: "Folder structure for superadmin", result: "pass", folderStructure };
             }
 
-            // For Admin (AccountTypeID 2), filter based on `hasAccess: true`
             if (user.AccountTypeID === 2) {
                 const folderPermissions = await model.FolderPermission.findAll({
                     where: { Username: user.Username, hasAccess: true },
                     attributes: ['folderpath', 'hasAccess']
                 });
-
-                // console.log(folderPermissions);
 
                 if (folderPermissions.length === 0) {
                     return { msg: "No folder access found for this admin", result: "nofound" };
@@ -332,24 +310,15 @@ const folderServices = {
 
                 const folderPathsWithAccess = folderPermissions.map(permission => permission.folderpath);
 
-                // console.log("fff", folderPathsWithAccess);
-
-                // Replace 'F:\' with '../../' and '\\' with '/'
                 const updatedFolderPaths = folderPathsWithAccess.map(folderPath =>
                     folderPath.replace('F:\\', '../../').replace(/\\/g, '/')
                 );
-
-                // console.log("Updated folder paths:", updatedFolderPaths);
 
                 const absoluteFolderPaths = updatedFolderPaths.map(folderPath =>
                     path.resolve(BASE_DIRECTORY, folderPath)
                 );
 
-                // console.log("Absolute folder paths:", absoluteFolderPaths);
-
                 const folderStructure = absoluteFolderPaths.map(folderPath => getFolderHierarchy(folderPath));
-
-                // console.log('Folder structure:', folderStructure);
 
                 return { msg: "Folders for admin with access", result: "pass", folderStructure };
 
@@ -375,7 +344,6 @@ const folderServices = {
 
             return { msg: "Invalid user role", result: "fail" };
         } catch (error) {
-            console.error(error);
             return { msg: "Something went wrong", result: "fail" }
         }
     },
@@ -400,10 +368,39 @@ const folderServices = {
     },
     async createFolder(req, res) {
         const { folderName , username } = req.body;
-        console.log(req.body)
-
         const foldercreation = createFolders(BASE_DIRECTORY , folderName)
+    },
+
+    async createchildFolder(req, res) {
+        const { folderName, ftpuser, parentname } = req.body;
+    
+        try {
+            const childFolderPath = `${BASE_DIRECTORY}/${parentname}`;
+    
+            const folderCreated = createFolders(childFolderPath , folderName)
+            if (!folderCreated) {
+                return res.status(500).json({ success: false, message: 'Failed to create folder on the server.' });
+            }
+    
+            const savedData = await model.ftpuser.create({
+                foldername: folderName,
+                ftpuser: ftpuser,
+                parentname: parentname,
+            });
+    
+            return {
+                success: true,
+                message: 'Child folder created successfully!',
+                data: savedData,
+            }
+        } catch (error) {
+            console.error('Error creating child folder:', error);
+            return {
+                message: 'An error occurred while creating the child folder.', result:"fail"
+            }
+        }
     }
+    
 };
 
 module.exports = folderServices;
