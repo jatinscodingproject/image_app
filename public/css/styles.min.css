@@ -2,28 +2,24 @@
     font-family: Arial, Helvetica, sans-serif;
 }
 
-/* Default font size for all navigation links */
 .nav-link {
-    font-size: 18px; /* Default size */
-    color: #6c757d; /* Default text color */
-    text-decoration: none; /* Remove underline */
+    font-size: 18px;
+    color: #6c757d;
+    text-decoration: none;
 }
 
-/* Hover effect for better user experience */
 .nav-link:hover {
-    font-size: 19px; /* Slightly larger font on hover */
-    color: #0056b3; /* Darker color on hover */
-    text-decoration: none; /* Keep underline removed */
+    font-size: 19px;
+    color: #0056b3;
+    text-decoration: none;
 }
 
-/* Active state to highlight the current page */
 .nav-link.active {
-    font-size: 20px; /* Larger font size for the active page */
-    color: #007bff; /* Highlight color */
-    font-weight: bold; /* Emphasize the active link */
+    font-size: 20px;
+    color: #007bff;
+    font-weight: bold;
 }
 
-/* Style for folder structure */
 .folder-item {
     margin: 10px 0;
     padding: 10px;
@@ -37,7 +33,6 @@
     background-color: #e9e9e9;
 }
 
-/* Style for folder names */
 .folder-name {
     cursor: pointer;
     display: flex;
@@ -61,12 +56,10 @@
     display: block;
 }
 
-/* Horizon line separating folder items */
 .folder-item:not(:last-child) {
     border-bottom: 2px solid #ddd;
 }
 
-/* File items styling */
 .file-item {
     display: flex;
     align-items: center;
@@ -117,7 +110,6 @@
     display: none;
 }
 
-/* Close button for the thumbnail view */
 .thumbnail-view .close-btn {
     position: absolute;
     top: 10px;
@@ -131,6 +123,38 @@
     padding: 5px;
 }
 
+.thumbnail-icons {
+    position: absolute;
+    display: flex;
+    gap: 20px;
+    justify-content: center;
+    align-items: center;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    opacity: 0;
+    transition: opacity 0.3s ease-in-out;
+}
+
+.thumbnail-view img:hover + .thumbnail-icons,
+.thumbnail-icons:hover {
+    opacity: 1;
+}
+
+.thumbnail-icons i {
+    font-size: 24px;
+    color: #fff;
+    background: rgba(0, 0, 0, 0.6);
+    padding: 10px;
+    border-radius: 50%;
+    cursor: pointer;
+    transition: transform 0.2s ease;
+}
+
+.thumbnail-icons i:hover {
+    transform: scale(1.2);
+}
+
 .fas.fa-folder-plus {
     transition: transform 0.2s;
 }
@@ -142,15 +166,46 @@
 }
 
 .folder-icon:hover {
-    transform: scale(1.2); /* Slight zoom effect */
+    transform: scale(1.2);
     color: #007bff;
 }
 
-/* Optional: Add padding between text and icon */
 .d-flex.justify-content-between {
     padding: 10px;
     border: 1px solid #ddd;
     border-radius: 8px;
     background-color: #f9f9f9;
+}
+
+#loader {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: rgba(255, 255, 255, 0.8);
+    z-index: 9999;
+}
+
+#loader div {
+    width: 50px;
+    height: 50px;
+    border: 5px solid #ccc;
+    border-top: 5px solid #1b44fc;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% {
+        transform: rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(360deg);
+    }
 }
 

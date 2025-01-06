@@ -11,6 +11,9 @@
 </head>
 
 <body id="page-top">
+	<div id="loader" class="loader" style="display: none;">
+        <div></div>
+    </div>
 	<div id="wrapper">
 		<nav class="navbar align-items-start sidebar sidebar-dark accordion bg-gradient-primary p-0 navbar-dark">
 			<div class="container-fluid d-flex flex-column p-0"><a
@@ -63,7 +66,12 @@
 									<div id="folderStructure" class="folder-list"></div>
 									<div class="thumbnail-view" id="thumbnailView">
 										<button class="close-btn" id="closeThumbnailView">X</button>
+										<div class="overlay"></div>
 										<img id="thumbnailImage" src="" alt="Thumbnail">
+										<div class="thumbnail-icons">
+											<i id="fullscreenIcon" class="fas fa-expand" title="Full Screen"></i>
+											<i id="downloadIcon" class="fas fa-download" title="Download"></i>
+										</div>
 									</div>
 								</div>
 							</div>
@@ -78,6 +86,23 @@
 			</footer>
 		</div><a class="border rounded d-inline scroll-to-top" href="#page-top"><i class="fas fa-angle-up"></i></a>
 	</div>
+
+	<div class="modal fade" id="errorModal" tabindex="-1" aria-labelledby="errorModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body" id="errorMessage" style="font-weight: bold; color: black;">
+                    <!-- Error message will be dynamically inserted here -->
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
 	<!-- <script src="/js/jquery.min.js?h=f56d3e84f8f4fb156548d390a8a85d8e"></script> -->
 	<script src="/bootstrap/js/bootstrap.min.js?h=374d178d651fa0eaf680a1fa7b40c788"></script>
 	<script src="/js/script.min.js?h=bdf36300aae20ed8ebca7e88738d5267"></script>
@@ -86,16 +111,13 @@
 	<script src="/js/logout.js"></script>
 	<script>
 		document.addEventListener('DOMContentLoaded', async function () {
-			console.log('Page Loaded');
-
-			// Get the username dynamically
+			document.getElementById('loader').style.display = 'flex'
 			const username = document.getElementById('UserName').textContent.trim();
 			const userdata = {
 				username: username
 			};
 
 			try {
-				// Call the backend API to fetch the main folder structure for the user
 				const res = await fetch('/api/folder', {
 					method: 'POST',
 					headers: {
@@ -105,9 +127,9 @@
 				});
 
 				const data = await res.json();
-				console.log(data);
 
 				if (data.result === "pass") {
+					document.getElementById('loader').style.display = "none"
 					const folderStructureElement = document.getElementById('folderStructure');
 					renderMainFolders(data.folderStructure, folderStructureElement);
 				} else {
@@ -143,6 +165,7 @@
 							newSubfolderList.classList.add('subfolder-list');
 
 							try {
+								document.getElementById('loader').style.display = "flex"
 								const res = await fetch('/api/getFolderContents', {
 									method: 'POST',
 									headers: {
@@ -154,6 +177,7 @@
 								const data = await res.json();
 
 								if (data.result === "pass") {
+									document.getElementById('loader').style.display = "none"
 									renderFolders(data.folderContents, newSubfolderList);
 								} else {
 									console.error('Failed to fetch subfolder contents');
@@ -184,26 +208,19 @@
 				const folderItem = document.createElement('div');
 				folderItem.classList.add('folder-item');
 
-				console.log(folder)
-				console.log(folder.type)
-				console.log(folder.path)
-
 				folderHTML = `
             <div class="folder-name">
                 <i class="fas fa-folder"></i> ${folder.name}
             </div>
         `;
 
-				// console.log(folderHTML)
 
 				if (folder.type === 'file') {
-					console.log(9999999999)
 					folderHTML = `
                 <div class="folder-name">
                     <i class="fas fa-image"></i> ${folder.name}
                 </div>
             `;
-					console.log(folder.path)
 					folderItem.dataset.path = folder.path;
 					folderItem.addEventListener('click', () => {
 						displayThumbnail(folder.path);
@@ -234,10 +251,10 @@
 								if (data.result === "pass") {
 									renderFolders(data.folderContents, newSubfolderList);
 								} else {
-									console.error('Failed to fetch subfolder contents');
+									showErrorPopup('Failed to fetch subfolder contents');
 								}
 							} catch (error) {
-								console.error('Error fetching subfolder contents:', error);
+								showErrorPopup('Something went wrong');
 							}
 
 							folderItem.appendChild(newSubfolderList);
@@ -259,35 +276,49 @@
 			const relativePath = filePath.replace(/^F:/, '').replace(/\\/g, '/');
 			console.log('Relative Path After Replacement:', relativePath);
 
-			const fullURL = relativePath;
-			console.log('Full URL:', fullURL);
-
-			const thumbnailContainer = document.createElement('div');
-			thumbnailContainer.classList.add('thumbnail-container');
-
-			// Step 4: Create the image element
-			console.log(111111111)
-			const imgElement = document.createElement('img');
-			console.log(99999999999)
-			imgElement.src = relativePath;
-			console.log(9999999999999)
-			console.log(imgElement.src)
-			imgElement.alt = 'Image Thumbnail';
-			imgElement.classList.add('thumbnail');
-
-			thumbnailContainer.appendChild(imgElement);
-
 			const thumbnailView = document.getElementById('thumbnailView');
-			if (!thumbnailView) {
-				console.error('Thumbnail view not found!');
+			const thumbnailImage = document.getElementById('thumbnailImage');
+			const fullscreenIcon = document.getElementById('fullscreenIcon');
+			const downloadIcon = document.getElementById('downloadIcon');
+
+			if (!thumbnailView || !thumbnailImage) {
+				console.error('Thumbnail view or image element not found!');
 				return;
 			}
 
-			thumbnailView.appendChild(thumbnailContainer);
+			thumbnailImage.src = relativePath;
+			thumbnailImage.alt = 'Image Thumbnail';
+			thumbnailView.style.display = 'flex';
+
+			fullscreenIcon.onclick = () => {
+				if (thumbnailImage.requestFullscreen) {
+					thumbnailImage.requestFullscreen();
+				} else if (thumbnailImage.webkitRequestFullscreen) {
+					thumbnailImage.webkitRequestFullscreen();
+				} else if (thumbnailImage.msRequestFullscreen) {
+					thumbnailImage.msRequestFullscreen();
+				}
+			};
+
+			downloadIcon.onclick = () => {
+				const link = document.createElement('a');
+				link.href = thumbnailImage.src;
+				link.download = 'image.jpg';
+				link.click();
+			};
 		}
 
+		document.getElementById('closeThumbnailView').onclick = () => {
+			document.getElementById('thumbnailView').style.display = 'none';
+		};
 
+		function showErrorPopup(message) {
+            const errorMessageElement = document.getElementById('errorMessage');
+            errorMessageElement.textContent = message;
 
+            const errorModal = new bootstrap.Modal(document.getElementById('errorModal'));
+            errorModal.show();
+        }
 
 
 	</script>
