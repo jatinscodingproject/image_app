@@ -10,8 +10,6 @@ router.get('/fetchParent', folderController.folderController.fetchParentfolder);
 
 router.post('/childfolder', folderController.folderController.getChild);
 
-
-
 router.get('/fetchAdminAndCheckAccess/:id' , folderController.folderController.fetchAdminAndCheckAccess)
 
 router.post('/saveFolderPermissions' , folderController.folderController.assignPermission)

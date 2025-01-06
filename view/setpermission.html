@@ -215,6 +215,11 @@
                 hasAccess: checkbox.checked
             }));
 
+            const modalElement = document.getElementById('accessModal');
+            const bootstrapModal = bootstrap.Modal.getInstance(modalElement);
+            bootstrapModal.hide();
+
+
 
             try {
                 const response = await fetch('/api/saveFolderPermissions', {
@@ -228,12 +233,8 @@
                 const data = await response.json();
                 if (data.result === 'success') {
                     showErrorPopup('Access Set Successfully');
-                    const accessModal = new bootstrap.Modal(document.getElementById('accessModal'));
-                    accessModal.hide();
                 } else {
                     showErrorPopup('Unable to set Access:');
-                    const accessModal = new bootstrap.Modal(document.getElementById('accessModal'));
-                    accessModal.hide()
                 }
             } catch (error) {
                 showErrorPopup('Something Went Wrong');

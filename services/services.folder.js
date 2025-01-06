@@ -211,7 +211,7 @@ const folderServices = {
             })
 
             const folderPermissions = await model.FolderPermission.findAll({
-                where: { folderId: id }
+                where: { subfolderId: id }
             });
 
             const permissionMap = folderPermissions.reduce((map, permission) => {
@@ -245,30 +245,26 @@ const folderServices = {
         try {
             for (const update of updates) {
                 const { username, folderName, hasAccess } = update;
-
                 const folderId = parseInt(folderName);
-
-                const folder = await model.Folder.findOne({ where: { id: folderId } });
-
+                const folder = await model.subFolder.findOne({ where: { id: folderId } });
                 if (!folder) {
                     return { result: 'fail', message: 'Folder not found' }
                 }
-
                 const permission = await model.FolderPermission.findOne({
-                    where: { Username: username, folderId: folder.id }
+                    where: { Username: username, subfolderId: folder.id }
                 });
 
                 if (permission) {
                     permission.hasAccess = hasAccess;
                     await permission.save();
                 } else {
-                    await model.FolderPermission.create({
+                    const permission = await model.FolderPermission.create({
                         Username: username,
                         parentname: folder.parentname,
                         foldername: folder.name,
                         folderpath: folder.path,
                         hasAccess: hasAccess,
-                        folderId: folder.id
+                        subfolderId: folder.id
                     });
                 }
             }
@@ -367,8 +363,15 @@ const folderServices = {
         }
     },
     async createFolder(req, res) {
-        const { folderName , username } = req.body;
-        const foldercreation = createFolders(BASE_DIRECTORY , folderName)
+        try{
+            const { folderName , username } = req.body;
+            const foldercreation = createFolders(BASE_DIRECTORY , folderName)
+
+            return {msg : `${folderName} created successfully` , result:"pass" , foldercreation}
+        }catch(err){
+            return {msg : "Folder cant be created" , result:"fail"}
+        }
+        
     },
 
     async createchildFolder(req, res) {
@@ -388,13 +391,8 @@ const folderServices = {
                 parentname: parentname,
             });
     
-            return {
-                success: true,
-                message: 'Child folder created successfully!',
-                data: savedData,
-            }
+            return {msg : `${folderName} created successfully` , result:"pass" , folderCreated}
         } catch (error) {
-            console.error('Error creating child folder:', error);
             return {
                 message: 'An error occurred while creating the child folder.', result:"fail"
             }
