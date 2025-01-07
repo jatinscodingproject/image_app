@@ -3,6 +3,7 @@ const fs = require('fs');
 const path = require('path');
 const model = require('../model/index');
 const sequelize = require('../config/db');
+const { dir } = require('console');
 
 const BASE_DIRECTORY = path.resolve('./serverAssets');
 
@@ -238,7 +239,6 @@ const folderServices = {
         }
     },
 
-
     async assignPermission(req, res) {
         const { updates } = req.body;
 
@@ -276,74 +276,79 @@ const folderServices = {
         }
     },
 
-
     async getUserFolders(req, res) {
         const { username } = req.body;
-
+    
         try {
             const user = await model.User.findOne({
                 where: { Username: username }
             });
-
+    
             if (!user) {
-                return { msg: "User not found", result: "fail" };
+                return { msg: "User not found", result: "fail" }
             }
-
+    
             if (user.AccountTypeID === 1) {
                 const folderStructure = getFolderHierarchy(BASE_DIRECTORY);
                 return { msg: "Folder structure for superadmin", result: "pass", folderStructure };
             }
-
+    
             if (user.AccountTypeID === 2) {
                 const folderPermissions = await model.FolderPermission.findAll({
                     where: { Username: user.Username, hasAccess: true },
-                    attributes: ['folderpath', 'hasAccess']
+                    attributes: ['folderpath', 'hasAccess', 'foldername']
                 });
-
+    
+    
                 if (folderPermissions.length === 0) {
-                    return { msg: "No folder access found for this admin", result: "nofound" };
+                    return { msg: "No folder access found for this admin", result: "fail" };
                 }
-
+    
                 const folderPathsWithAccess = folderPermissions.map(permission => permission.folderpath);
-
+    
                 const updatedFolderPaths = folderPathsWithAccess.map(folderPath =>
-                    folderPath.replace('F:\\', '../../').replace(/\\/g, '/')
+                    folderPath.replace(/\\/g, '/').replace('F:', '..')
                 );
-
-                const absoluteFolderPaths = updatedFolderPaths.map(folderPath =>
-                    path.resolve(BASE_DIRECTORY, folderPath)
-                );
-
-                const folderStructure = absoluteFolderPaths.map(folderPath => getFolderHierarchy(folderPath));
-
-                return { msg: "Folders for admin with access", result: "pass", folderStructure };
-
-
+    
+    
+                try {
+                    const folderStructure = updatedFolderPaths.map(folderPath => getFolderHierarchy(path.resolve(folderPath)));
+                    return { msg: "Folders for admin with access", result: "pass", folderStructure };
+                } catch (error) {
+                    return { msg: 'Error retrieving folder structure', result: 'error', error: error.message };
+                }
             }
-
+    
             if (user.AccountTypeID === 3) {
                 const folderPermissions = await model.FolderPermission.findAll({
                     where: { Username: user.createdBy, hasAccess: true },
                     attributes: ['folderpath']
                 });
-
+    
                 if (folderPermissions.length === 0) {
-                    return { msg: "No folder access found for regular user", result: "fail" }
+                    return { msg: "No folder access found for this admin", result: "fail" };
                 }
-
+    
                 const folderPathsWithAccess = folderPermissions.map(permission => permission.folderpath);
-
-                const folderStructure = folderPathsWithAccess.map(folderPath => getFolderHierarchy(folderPath));
-
-                return { msg: "Folders for regular user", result: "pass", folderStructure }
+    
+                const updatedFolderPaths = folderPathsWithAccess.map(folderPath =>
+                    folderPath.replace(/\\/g, '/').replace('F:', '..')
+                );
+    
+                try {
+                    const folderStructure = updatedFolderPaths.map(folderPath => getFolderHierarchy(path.resolve(folderPath)));
+                    return { msg: "Folders for admin with access", result: "pass", folderStructure };
+                } catch (error) {
+                    return { msg: 'Error retrieving folder structure', result: 'error', error: error.message };
+                }
             }
-
-            return { msg: "Invalid user role", result: "fail" };
+    
+            return res.json({ msg: "Invalid user role", result: "fail" });
         } catch (error) {
-            return { msg: "Something went wrong", result: "fail" }
+            return res.json({ msg: "Something went wrong", result: "fail", error: error.message });
         }
     },
-
+    
 
     async getFolderContents(req, res) {
         const { folderPath } = req.body;
@@ -362,6 +367,7 @@ const folderServices = {
             });
         }
     },
+
     async createFolder(req, res) {
         try{
             const { folderName , username } = req.body;

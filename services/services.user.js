@@ -18,7 +18,6 @@ const userServices = {
                     email: email,
                 }
             }, { transaction: t });
-            // console.log(checking_user_email)
             const checking_user = await model.User.findOne({
                 where: {
                     Username: username,
@@ -145,14 +144,12 @@ const userServices = {
     async userLogging(req, res) {
         const { username, password } = req.body;
         try {
-            console.log(req.body)
             const user = await model.User.findOne({ where: { Username: username } });
             if (!user) {
                 return {msg:"User Does not Exists", result:"fail"}
             }
-            // console.log(user)
+
             const isPasswordMatch = await hashedValue.comparehashPass(password, user.password)
-            console.log(isPasswordMatch)
             if (!isPasswordMatch) {
                 return {msg:"Password is Wrong" , result:"fail"}
             }
@@ -168,7 +165,6 @@ const userServices = {
                 return {msg:"Your Account is not active" , result:"fail"}
             }
 
-            console.log(user)
             const token = generateSecretTokenUser(user.UserId)
             
             const pages = await model.PageAccess.findAll({
@@ -177,7 +173,7 @@ const userServices = {
                     hasAcess:true
                 }   
             })
-            return {msg:'Logging Successfully', token , result:"pass", pages , 'username' : user.Username}
+            return {msg:'Logging Successfully', token , result:"pass", pages , 'username' : user.Username , 'type' : user.AccountTypeID}
         } catch (err) {
             return {msg:"Something Went Wrong" , result:"fail"}
         }
@@ -205,7 +201,7 @@ const userServices = {
                     hasAcess:true
                 }   
             })
-            return {msg:'Logging Successfully', token , result:"pass", pages , 'username' : user.Username}
+            return {msg:'Logging Successfully', token , result:"pass", pages , 'username' : user.Username , 'type' : user.AccountTypeID}
         } catch (err) {
             return {msg:"Something Went Wrong" , result:"fail"}
         }

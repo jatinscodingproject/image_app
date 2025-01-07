@@ -209,3 +209,12 @@
     }
 }
 
+#thumbnailImage, #thumbnailVideo {
+    max-width: auto;
+    max-height: 50vh;
+}
+
+#thumbnailVideo {
+    height: 50vh;
+}
+

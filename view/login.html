@@ -139,6 +139,7 @@
                     localStorage.setItem('token', data.token)
                     localStorage.setItem("pages", JSON.stringify(data.pages));
                     localStorage.setItem("username", data.username)
+                    localStorage.setItem("type", data.type)
                     window.location.href = "/api/home";
                 }else if(data.result === "true" && data.activity === "changePassword"){
                     document.getElementById('loader').style.display = "none"

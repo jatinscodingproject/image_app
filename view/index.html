@@ -12,8 +12,8 @@
 
 <body id="page-top">
 	<div id="loader" class="loader" style="display: none;">
-        <div></div>
-    </div>
+		<div></div>
+	</div>
 	<div id="wrapper">
 		<nav class="navbar align-items-start sidebar sidebar-dark accordion bg-gradient-primary p-0 navbar-dark">
 			<div class="container-fluid d-flex flex-column p-0"><a
@@ -67,7 +67,7 @@
 									<div class="thumbnail-view" id="thumbnailView">
 										<button class="close-btn" id="closeThumbnailView">X</button>
 										<div class="overlay"></div>
-										<img id="thumbnailImage" src="" alt="Thumbnail">
+										<div id="thumbnailImage"></div>
 										<div class="thumbnail-icons">
 											<i id="fullscreenIcon" class="fas fa-expand" title="Full Screen"></i>
 											<i id="downloadIcon" class="fas fa-download" title="Download"></i>
@@ -78,6 +78,7 @@
 						</div>
 					</div>
 				</div>
+				
 			</div>
 			<footer class="bg-white sticky-footer">
 				<div class="container my-auto">
@@ -88,20 +89,20 @@
 	</div>
 
 	<div class="modal fade" id="errorModal" tabindex="-1" aria-labelledby="errorModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body" id="errorMessage" style="font-weight: bold; color: black;">
-                    <!-- Error message will be dynamically inserted here -->
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Close</button>
-                </div>
-            </div>
-        </div>
-    </div>
+		<div class="modal-dialog modal-dialog-centered">
+			<div class="modal-content">
+				<div class="modal-header">
+					<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+				</div>
+				<div class="modal-body" id="errorMessage" style="font-weight: bold; color: black;">
+					<!-- Error message will be dynamically inserted here -->
+				</div>
+				<div class="modal-footer">
+					<button type="button" class="btn btn-primary" data-bs-dismiss="modal">Close</button>
+				</div>
+			</div>
+		</div>
+	</div>
 
 	<!-- <script src="/js/jquery.min.js?h=f56d3e84f8f4fb156548d390a8a85d8e"></script> -->
 	<script src="/bootstrap/js/bootstrap.min.js?h=374d178d651fa0eaf680a1fa7b40c788"></script>
@@ -129,34 +130,64 @@
 				});
 
 				const data = await res.json();
-
 				if (data.result === "pass") {
 					document.getElementById('loader').style.display = "none"
 					const folderStructureElement = document.getElementById('folderStructure');
 					renderMainFolders(data.folderStructure, folderStructureElement);
 				} else {
-					console.error('Failed to fetch folder structure');
+					showErrorPopup('Failed to fetch folder structure');
 				}
-
 			} catch (error) {
-				console.error('Error fetching folder structure:', error);
+				showErrorPopup('Error fetching folder structure');
 			}
 		});
 		const token = localStorage.getItem('token')
+
 		function renderMainFolders(mainFolders, parentElement) {
 			if (Array.isArray(mainFolders)) {
+
+
 				mainFolders.forEach(folder => {
+					const type = localStorage.getItem('type');
+
 					const folderItem = document.createElement('div');
 					folderItem.classList.add('folder-item');
 
-					folderItem.innerHTML = `
-                <div class="folder-name">
-                    <i class="fas fa-folder"></i> ${folder.name}
-                </div>
-                <div class="folder-content"></div>
-            `;
+					// Handle folder name and path
+					let folderName = '';
+					let folderPath = '';
 
-					folderItem.dataset.path = folder.path;
+					if (type === '1') {
+						// Handle the case for super admin
+						folderName = folder.name;
+						folderPath = folder.path;
+
+						folderItem.innerHTML = `
+                    <div class="folder-name">
+                        <i class="fas fa-folder"></i> ${folderName}
+                    </div>
+                    <div class="folder-content"></div>
+                `;
+					} else {
+						if (Array.isArray(folder) && folder.length > 0) {
+							folder.forEach(subFolder => {
+								folderName = subFolder.name || 'No Folder Name';
+								folderPath = subFolder.path || '';
+
+								folderItem.innerHTML += `
+                            <div class="folder-name">
+                                <i class="fas fa-folder"></i> ${folderName}
+                            </div>
+                            <div class="folder-content"></div>
+                        `;
+							});
+						} else {
+							folderName = 'Unknown Folder';
+							folderPath = '';
+						}
+					}
+
+					folderItem.dataset.path = folderPath;
 					parentElement.appendChild(folderItem);
 
 					folderItem.querySelector('.folder-name').addEventListener('click', async () => {
@@ -167,26 +198,27 @@
 							newSubfolderList.classList.add('subfolder-list');
 
 							try {
-								document.getElementById('loader').style.display = "flex"
+								document.getElementById('loader').style.display = "flex";
 								const res = await fetch('/api/getFolderContents', {
 									method: 'POST',
 									headers: {
 										'Content-Type': 'application/json',
 										'Authorization': `Bearer ${token}`
 									},
-									body: JSON.stringify({ folderPath: folder.path }),
+									body: JSON.stringify({ folderPath: folderPath }),
 								});
 
 								const data = await res.json();
-
 								if (data.result === "pass") {
-									document.getElementById('loader').style.display = "none"
+									document.getElementById('loader').style.display = "none";
 									renderFolders(data.folderContents, newSubfolderList);
 								} else {
-									console.error('Failed to fetch subfolder contents');
+									document.getElementById('loader').style.display = "none";
+									showErrorPopup('Empty folder');
 								}
 							} catch (error) {
-								console.error('Error fetching subfolder contents:', error);
+								document.getElementById('loader').style.display = "none";
+								showErrorPopup('Error fetching subfolder contents');
 							}
 
 							folderItem.appendChild(newSubfolderList);
@@ -200,9 +232,10 @@
 					});
 				});
 			} else {
-				console.error("The folder structure is not an array", mainFolders);
+				showErrorPopup("something went wrong");
 			}
 		}
+
 
 		let folderHTML;
 
@@ -211,27 +244,29 @@
 				const folderItem = document.createElement('div');
 				folderItem.classList.add('folder-item');
 
-				folderHTML = `
+				let folderHTML = `
             <div class="folder-name">
                 <i class="fas fa-folder"></i> ${folder.name}
             </div>
         `;
 
-
+				// Check if the item is a file and handle accordingly
 				if (folder.type === 'file') {
 					folderHTML = `
                 <div class="folder-name">
-                    <i class="fas fa-image"></i> ${folder.name}
+                    <i class="fas fa-file"></i> ${folder.name}
                 </div>
             `;
 					folderItem.dataset.path = folder.path;
+
 					folderItem.addEventListener('click', () => {
-						displayThumbnail(folder.path);
+						displayThumbnail(folder.path);  // Display thumbnail for file
 					});
 				}
 
 				folderItem.innerHTML = folderHTML;
 
+				// If folder type, handle subfolders
 				if (folder.type === 'folder') {
 					folderItem.querySelector('.folder-name').addEventListener('click', async () => {
 						const subfolderList = folderItem.querySelector('.subfolder-list');
@@ -278,61 +313,91 @@
 
 		function displayThumbnail(filePath) {
 			const relativePath = filePath.replace(/^F:/, '').replace(/\\/g, '/');
-			console.log('Relative Path After Replacement:', relativePath);
 
 			const thumbnailView = document.getElementById('thumbnailView');
-			const thumbnailImage = document.getElementById('thumbnailImage');
+			const thumbnailContainer = document.getElementById('thumbnailImage');
 			const fullscreenIcon = document.getElementById('fullscreenIcon');
 			const downloadIcon = document.getElementById('downloadIcon');
 
-			if (!thumbnailView || !thumbnailImage) {
-				console.error('Thumbnail view or image element not found!');
+			if (!thumbnailView || !thumbnailContainer) {
+				showErrorPopup('Thumbnail view or image element not found!');
 				return;
 			}
 
-			thumbnailImage.src = relativePath;
-			thumbnailImage.alt = 'Image Thumbnail';
-			thumbnailView.style.display = 'flex';
+			const fileExtension = filePath.split('.').pop().toLowerCase();
 
-			fullscreenIcon.onclick = () => {
-				if (thumbnailImage.requestFullscreen) {
-					thumbnailImage.requestFullscreen();
-				} else if (thumbnailImage.webkitRequestFullscreen) {
-					thumbnailImage.webkitRequestFullscreen();
-				} else if (thumbnailImage.msRequestFullscreen) {
-					thumbnailImage.msRequestFullscreen();
-				}
-			};
+			// Check if file is an image or video
+			if (['jpg', 'jpeg', 'png', 'gif'].includes(fileExtension)) {
+				// If image
+				thumbnailContainer.innerHTML = `<img src="${relativePath}" alt="Thumbnail" />`;
+				thumbnailView.style.display = 'flex';
+
+				fullscreenIcon.onclick = () => {
+					const imgElement = thumbnailContainer.querySelector('img');
+					if (imgElement.requestFullscreen) {
+						imgElement.requestFullscreen();
+					} else if (imgElement.webkitRequestFullscreen) {
+						imgElement.webkitRequestFullscreen();
+					} else if (imgElement.msRequestFullscreen) {
+						imgElement.msRequestFullscreen();
+					}
+				};
+			} else if (fileExtension === 'mp4') {
+				// If video
+				thumbnailContainer.innerHTML = `
+            <video id="thumbnailVideo" controls>
+                <source src="${relativePath}" type="video/mp4">
+                Your browser does not support the video tag.
+            </video>
+        `;
+				thumbnailView.style.display = 'flex';
+
+				fullscreenIcon.onclick = () => {
+					const videoElement = document.getElementById('thumbnailVideo');
+					if (videoElement.requestFullscreen) {
+						videoElement.requestFullscreen();
+					} else if (videoElement.webkitRequestFullscreen) {
+						videoElement.webkitRequestFullscreen();
+					} else if (videoElement.msRequestFullscreen) {
+						videoElement.msRequestFullscreen();
+					}
+				};
+			} else {
+				showErrorPopup('Unsupported file format');
+			}
 
 			downloadIcon.onclick = () => {
 				const link = document.createElement('a');
-				link.href = thumbnailImage.src;
-				link.download = 'image.jpg';
+				link.href = relativePath;
+				link.download = `file.${fileExtension}`;
 				link.click();
 			};
 		}
+
+
+
 
 		document.getElementById('closeThumbnailView').onclick = () => {
 			document.getElementById('thumbnailView').style.display = 'none';
 		};
 
 		function showErrorPopup(message) {
-            const errorMessageElement = document.getElementById('errorMessage');
-            errorMessageElement.textContent = message;
+			const errorMessageElement = document.getElementById('errorMessage');
+			errorMessageElement.textContent = message;
 
-            const errorModal = new bootstrap.Modal(document.getElementById('errorModal'));
-            errorModal.show();
-        }
+			const errorModal = new bootstrap.Modal(document.getElementById('errorModal'));
+			errorModal.show();
+		}
 
 		function checkAuthRedirect() {
-            const token = localStorage.getItem('token');
+			const token = localStorage.getItem('token');
 
-            if (!token) {
-                window.location.href = '/api/';
-            }
-        }
+			if (!token) {
+				window.location.href = '/api/';
+			}
+		}
 
-        checkAuthRedirect();
+		checkAuthRedirect();
 
 
 	</script>
