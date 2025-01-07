@@ -61,6 +61,10 @@
 							<p class="text-primary m-0 fw-bold">Accessible Folders</p>
 						</div>
 						<div class="card-body">
+							<div class="search-container">
+								<input type="text" id="globalSearch" class="form-control"
+									placeholder="Search for a folder..." onkeyup="filterFolders()">
+							</div>
 							<div class="row">
 								<div class="col">
 									<div id="folderStructure" class="folder-list"></div>
@@ -78,7 +82,7 @@
 						</div>
 					</div>
 				</div>
-				
+
 			</div>
 			<footer class="bg-white sticky-footer">
 				<div class="container my-auto">
@@ -111,6 +115,7 @@
 	<script src="/js/pages.js"></script>
 	<script src="/js/logout.js"></script>
 	<script>
+		let foldersData = []; // Array to store the folder structure for search filtering
 		document.addEventListener('DOMContentLoaded', async function () {
 			document.getElementById('loader').style.display = 'flex'
 			const token = localStorage.getItem('token')
@@ -145,15 +150,14 @@
 
 		function renderMainFolders(mainFolders, parentElement) {
 			if (Array.isArray(mainFolders)) {
-
+				// Store folder data globally for filtering
+				foldersData = mainFolders;
 
 				mainFolders.forEach(folder => {
 					const type = localStorage.getItem('type');
-
 					const folderItem = document.createElement('div');
 					folderItem.classList.add('folder-item');
 
-					// Handle folder name and path
 					let folderName = '';
 					let folderPath = '';
 
@@ -232,14 +236,14 @@
 					});
 				});
 			} else {
-				showErrorPopup("something went wrong");
+				showErrorPopup("Something went wrong");
 			}
 		}
-
 
 		let folderHTML;
 
 		function renderFolders(folders, parentElement) {
+			parentElement.innerHTML = ''; // Clear the previous folder list
 			folders.forEach(folder => {
 				const folderItem = document.createElement('div');
 				folderItem.classList.add('folder-item');
@@ -250,7 +254,6 @@
             </div>
         `;
 
-				// Check if the item is a file and handle accordingly
 				if (folder.type === 'file') {
 					folderHTML = `
                 <div class="folder-name">
@@ -260,13 +263,12 @@
 					folderItem.dataset.path = folder.path;
 
 					folderItem.addEventListener('click', () => {
-						displayThumbnail(folder.path);  // Display thumbnail for file
+						displayThumbnail(folder.path);
 					});
 				}
 
 				folderItem.innerHTML = folderHTML;
 
-				// If folder type, handle subfolders
 				if (folder.type === 'folder') {
 					folderItem.querySelector('.folder-name').addEventListener('click', async () => {
 						const subfolderList = folderItem.querySelector('.subfolder-list');
@@ -311,6 +313,19 @@
 			});
 		}
 
+
+		function filterFolders() {
+			const searchQuery = document.getElementById('globalSearch').value.toLowerCase();
+			console.log(foldersData)
+			const filteredFolders = foldersData.filter(folder => folder.name.toLowerCase().includes(searchQuery));
+
+			const folderStructureElement = document.getElementById('folderStructure');
+			renderFolders(filteredFolders, folderStructureElement);
+		}
+
+
+
+
 		function displayThumbnail(filePath) {
 			const relativePath = filePath.replace(/^F:/, '').replace(/\\/g, '/');
 
@@ -326,9 +341,7 @@
 
 			const fileExtension = filePath.split('.').pop().toLowerCase();
 
-			// Check if file is an image or video
 			if (['jpg', 'jpeg', 'png', 'gif'].includes(fileExtension)) {
-				// If image
 				thumbnailContainer.innerHTML = `<img src="${relativePath}" alt="Thumbnail" />`;
 				thumbnailView.style.display = 'flex';
 
@@ -343,7 +356,6 @@
 					}
 				};
 			} else if (fileExtension === 'mp4') {
-				// If video
 				thumbnailContainer.innerHTML = `
             <video id="thumbnailVideo" controls>
                 <source src="${relativePath}" type="video/mp4">
@@ -373,9 +385,6 @@
 				link.click();
 			};
 		}
-
-
-
 
 		document.getElementById('closeThumbnailView').onclick = () => {
 			document.getElementById('thumbnailView').style.display = 'none';
