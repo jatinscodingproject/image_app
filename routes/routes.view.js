@@ -2,6 +2,7 @@ const express = require('express');
 const path = require('path');
 const router = express.Router()
 
+
 router.get('/',(req,res) => {
     res.sendFile(path.join(__dirname , '../view/login.html'))
 })
@@ -41,6 +42,10 @@ router.get('/addUser',(req,res) => {
 
 router.get('/Createfolder',(req,res) => {
     res.sendFile(path.join(__dirname , '../view/createFolder.html'))
+})
+
+router.get('/404',(req,res) => {
+    res.sendFile(path.join(__dirname , '../view/404.html'))
 })
 
 module.exports = router

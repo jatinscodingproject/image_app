@@ -112,6 +112,7 @@
 	<script>
 		document.addEventListener('DOMContentLoaded', async function () {
 			document.getElementById('loader').style.display = 'flex'
+			const token = localStorage.getItem('token')
 			const username = document.getElementById('UserName').textContent.trim();
 			const userdata = {
 				username: username
@@ -122,6 +123,7 @@
 					method: 'POST',
 					headers: {
 						'Content-Type': 'application/json',
+						'Authorization': `Bearer ${token}`,
 					},
 					body: JSON.stringify(userdata)
 				});
@@ -140,7 +142,7 @@
 				console.error('Error fetching folder structure:', error);
 			}
 		});
-
+		const token = localStorage.getItem('token')
 		function renderMainFolders(mainFolders, parentElement) {
 			if (Array.isArray(mainFolders)) {
 				mainFolders.forEach(folder => {
@@ -170,6 +172,7 @@
 									method: 'POST',
 									headers: {
 										'Content-Type': 'application/json',
+										'Authorization': `Bearer ${token}`
 									},
 									body: JSON.stringify({ folderPath: folder.path }),
 								});
@@ -242,6 +245,7 @@
 									method: 'POST',
 									headers: {
 										'Content-Type': 'application/json',
+										'Authorization': `Bearer ${token}`
 									},
 									body: JSON.stringify({ folderPath: folder.path }),
 								});
@@ -319,6 +323,16 @@
             const errorModal = new bootstrap.Modal(document.getElementById('errorModal'));
             errorModal.show();
         }
+
+		function checkAuthRedirect() {
+            const token = localStorage.getItem('token');
+
+            if (!token) {
+                window.location.href = '/api/';
+            }
+        }
+
+        checkAuthRedirect();
 
 
 	</script>

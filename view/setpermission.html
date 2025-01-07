@@ -11,6 +11,9 @@
 </head>
 
 <body id="page-top">
+    <div id="loader" class="loader" style="display: none;">
+        <div></div>
+    </div>
     <div id="wrapper">
         <nav class="navbar align-items-start sidebar sidebar-dark accordion bg-gradient-primary p-0 navbar-dark">
             <div class="container-fluid d-flex flex-column p-0"><a
@@ -121,29 +124,35 @@
     <script src="/js/logout.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', async function () {
-            const pathname = window.location.pathname; // Get the path part of the URL
-            const parentname = pathname.split('/').pop(); // Extract the last segment
+            const token = localStorage.getItem('token')
+            const pathname = window.location.pathname;
+            const parentname = pathname.split('/').pop();
             const parentdata = {
                 parentname: parentname
             }
             try {
+                document.getElementById('loader').style.display = "flex"
                 const res = await fetch('/api/childfolder', {
                     method: 'POST',
                     headers: {
-                        'Content-Type': 'application/json'
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
                     },
                     body: JSON.stringify(parentdata)
                 })
                 const data = await res.json()
                 if (data.result === "pass") {
+                    document.getElementById('loader').style.display = "none"
                     populatelist(data.childfolder)
                 }
             } catch {
+                document.getElementById('loader').style.display = "none"
                 showErrorPopup('Something Went Wrong')
             }
 
         })
 
+        const token = localStorage.getItem('token')
 
 
         function populatelist(parentdata) {
@@ -177,10 +186,18 @@
             userList.innerHTML = '';
 
             try {
-                const response = await fetch(`/api/fetchAdminAndCheckAccess/${encodeURIComponent(folderName)}`);
+                document.getElementById('loader').style.display = "flex"
+                const response = await fetch(`/api/fetchAdminAndCheckAccess/${encodeURIComponent(folderName)}` , {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                });
                 const data = await response.json();
                 // console.log(data)
                 data.admins.forEach(admin => {
+                    document.getElementById('loader').style.display = "none"
                     const listItem = document.createElement('li');
                     listItem.classList.add('list-group-item', 'd-flex', 'justify-content-between', 'align-items-center');
 
@@ -218,23 +235,27 @@
             const modalElement = document.getElementById('accessModal');
             const bootstrapModal = bootstrap.Modal.getInstance(modalElement);
             bootstrapModal.hide();
-
+            document.getElementById('loader').style.display = "flex"
             try {
                 const response = await fetch('/api/saveFolderPermissions', {
                     method: 'POST',
                     headers: {
-                        'Content-Type': 'application/json'
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
                     },
                     body: JSON.stringify({ updates })
                 });
 
                 const data = await response.json();
                 if (data.result === 'success') {
+                    document.getElementById('loader').style.display = "none"
                     showErrorPopup('Access Set Successfully');
                 } else {
+                    document.getElementById('loader').style.display = "none"
                     showErrorPopup('Unable to set Access:');
                 }
             } catch (error) {
+                document.getElementById('loader').style.display = "none"
                 showErrorPopup('Something Went Wrong');
             }
         }
@@ -246,6 +267,16 @@
             const errorModal = new bootstrap.Modal(document.getElementById('errorModal'));
             errorModal.show();
         }
+
+        function checkAuthRedirect() {
+            const token = localStorage.getItem('token');
+
+            if (!token) {
+                window.location.href = '/api/';
+            }
+        }
+
+        checkAuthRedirect();
 
 
 

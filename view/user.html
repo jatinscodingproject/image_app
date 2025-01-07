@@ -16,6 +16,9 @@
 </head>
 
 <body id="page-top">
+	<div id="loader" class="loader" style="display: none;">
+        <div></div>
+    </div>
 	<div id="wrapper">
 		<nav class="navbar align-items-start sidebar sidebar-dark accordion bg-gradient-primary p-0 navbar-dark">
 			<div class="container-fluid d-flex flex-column p-0">
@@ -161,25 +164,30 @@
 			}
 		});
 
+		const token = localStorage.getItem('token')
+
 		function fetchUser(username) {
-			console.log(username)
+			document.getElementById('loader').style.display = "flex"
 			fetch('/api/fetchUser', {
 				method: 'POST',
 				headers: {
-					'Content-Type': 'application/json'
+					'Content-Type': 'application/json',
+					'Authorization': `Bearer ${token}`
 				},
 				body: JSON.stringify({ username: username })
 			})
 				.then(response => response.json())
 				.then(data => {
 					if (data.result === "pass") {
+						document.getElementById('loader').style.display = "none"
 						populateUserTable(data.Users);
 					} else {
+						document.getElementById('loader').style.display = "none"
 						showErrorPopup(data.msg || "Failed to fetch user data.");
 					}
 				})
 				.catch(error => {
-					console.log(error)
+					document.getElementById('loader').style.display = "none"
 					showErrorPopup("Something went wrong while fetching user data.");
 				});
 		}
@@ -275,72 +283,85 @@
 				FName: firstName,
 				LName: lastName,
 			};
-
+			document.getElementById('loader').style.display = "flex"
 			fetch(`/api/editUser/${userId}`, {
 				method: 'POST',
 				headers: {
-					'Content-Type': 'application/json'
+					'Content-Type': 'application/json',
+					'Authorization': `Bearer ${token}`
 				},
 				body: JSON.stringify(userData)
 			})
 				.then(response => response.json())
 				.then(data => {
 					if (data.result === "pass") {
+						document.getElementById('loader').style.display = "none"
 						$('#editUserModal').modal('hide');
 						location.reload()
 					} else {
+						document.getElementById('loader').style.display = "none"
 						showErrorPopup('Error updating user');
 					}
 				})
 				.catch(error => {
+					document.getElementById('loader').style.display = "none"
 					showErrorPopup('Something went Wrong');
 				});
 		}
 
 
 		function deleteUser(userId) {
+			document.getElementById('loader').style.display = "flex"
 			if (confirm("Are you sure you want to delete this user?")) {
 				fetch(`/api/deleteUser/${userId}`, {
 					method: 'DELETE',
 					headers: {
-						'Content-Type': 'application/json'
+						'Content-Type': 'application/json',
+						'Authorization': `Bearer ${token}`
 					}
 				})
 					.then(response => response.json())
 					.then(data => {
-						console.log(data)
+						
 						if (data.status === "pass") {
+							document.getElementById('loader').style.display = "none"
 							showSuccessPopup("User deleted successfully.");
 							location.reload
 						} else {
+							document.getElementById('loader').style.display = "none"
 							showErrorPopup(data.msg || "Failed to delete user.");
 						}
 					})
 					.catch(error => {
+						document.getElementById('loader').style.display = "none"
 						showErrorPopup("Something went wrong while deleting the user.");
 					});
 			}
 		}
 
 		function toggleUserStatus(userId, isActive) {
+			document.getElementById('loader').style.display = "flex"
 			fetch(`/api/toggle/${userId}`, {
 				method: 'POST',
 				headers: {
-					'Content-Type': 'application/json'
+					'Content-Type': 'application/json',
+					'Authorization': `Bearer ${token}`
 				},
 				body: JSON.stringify({ status: isActive ? 'active' : 'inactive' })
 			})
 				.then(response => response.json())
 				.then(data => {
 					if (data.result === "pass") {
+						document.getElementById('loader').style.display = "none"
 						showSuccessPopup("User status updated successfully.");
 						location.reload()
 					} else {
+						document.getElementById('loader').style.display = "none"
 						showErrorPopup(data.msg || "Failed to update user status.");
 					}
 				})
 				.catch(error => {
-					console.error("Error:", error);
+					document.getElementById('loader').style.display = "none"
 					showErrorPopup("Something went wrong while updating user status.");
 				});
 		}
@@ -360,6 +381,16 @@
 			const errorModal = new bootstrap.Modal(document.getElementById('errorModal'));
 			errorModal.show();
 		}
+
+		function checkAuthRedirect() {
+            const token = localStorage.getItem('token');
+
+            if (!token) {
+                window.location.href = '/api/';
+            }
+        }
+
+        checkAuthRedirect();
 	</script>
 </body>
 

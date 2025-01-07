@@ -11,6 +11,9 @@
 </head>
 
 <body class="" style="background-color: rgb(221, 230, 230);">
+    <div id="loader" class="loader" style="display: none;">
+        <div></div>
+    </div>
     <div class="container">
         <div class="row justify-content-center">
             <div class="col-md-9 col-lg-6 col-xl-10">
@@ -121,6 +124,7 @@
             };
 
             try {
+                document.getElementById('loader').style.display = "flex"
                 const response = await fetch('/api/login', {
                     method: 'POST',
                     headers: {
@@ -131,17 +135,21 @@
 
                 const data = await response.json();
                 if (data.result === "pass") {
+                    document.getElementById('loader').style.display = "none"
                     localStorage.setItem('token', data.token)
                     localStorage.setItem("pages", JSON.stringify(data.pages));
                     localStorage.setItem("username", data.username)
                     window.location.href = "/api/home";
                 }else if(data.result === "true" && data.activity === "changePassword"){
+                    document.getElementById('loader').style.display = "none"
                     const changeModal = new bootstrap.Modal(document.getElementById('changePasswordModal'));
                         changeModal.show();
                 }else {
+                    document.getElementById('loader').style.display = "none"
                     showErrorPopup(data.msg || 'Login failed. Please try again.');
                 }
             } catch (error) {
+                document.getElementById('loader').style.display = "none"
                 showErrorPopup('An unexpected error occurred. Please try again later.');
             }
         });
@@ -150,7 +158,7 @@
             const op = document.getElementById('oldPassword').value;
             const np = document.getElementById('newPassword').value;
             const cp = document.getElementById('confirmPassword').value;
-
+            document.getElementById('loader').style.display = "flex"
             if (np != cp){
                 showErrorPopup("Password and Confirm Password Does not Match")
             }
@@ -165,13 +173,16 @@
                 .then(response => response.json())
                 .then(data => {
                     if (data.result === "pass") {
+                        document.getElementById('loader').style.display = "none"
                         showErrorPopup(data.msg)
                         window.location.href = '/api/';
                     } else {
+                        document.getElementById('loader').style.display = "none"
                         showErrorPopup(data.msg);
                     }
                 })
                 .catch(error => {
+                    document.getElementById('loader').style.display = "none"
                     showErrorPopup('An unexpected error occurred. Please try again later.');
                 });
         });

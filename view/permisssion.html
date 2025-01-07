@@ -11,6 +11,9 @@
 </head>
 
 <body id="page-top">
+	<div id="loader" class="loader" style="display: none;">
+		<div></div>
+	</div>
 	<div id="wrapper">
 		<nav class="navbar align-items-start sidebar sidebar-dark accordion bg-gradient-primary p-0 navbar-dark">
 			<div class="container-fluid d-flex flex-column p-0"><a
@@ -85,41 +88,61 @@
 	<script>
 		document.addEventListener('DOMContentLoaded', async function () {
 			try {
-				const res = await fetch('/api/folder-structure')
+				const token = localStorage.getItem('token')
+				document.getElementById('loader').style.display = "flex"
+				const res = await fetch('/api/folder-structure', {
+					method: 'GET',
+					headers: {
+						'Authorization': `Bearer ${token}`,
+					},
+				});
 				const data = await res.json()
 				if (data.result === "pass") {
-
+					document.getElementById('loader').style.display = "none"
 				}
 			} catch {
-
+				document.getElementById('loader').style.display = "none"
 			}
 			fetchsub()
 			fetchParent()
-			
-		})
 
-		async function fetchsub(){
+		})
+		const token = localStorage.getItem('token')
+		async function fetchsub() {
 			try {
-				const res = await fetch('/api/subfolder')
+				document.getElementById('loader').style.display = "flex"
+				const res = await fetch('/api/subfolder', {
+					method: 'GET',
+					headers: {
+						'Authorization': `Bearer ${token}`,
+					},
+				});
 				const data = await res.json()
 				if (data.result === "pass") {
-
+					document.getElementById('loader').style.display = "none"
 				}
 			} catch {
-
+				document.getElementById('loader').style.display = "none"
 			}
 		}
 
 		async function fetchParent() {
 			try {
-				const res = await fetch('/api/fetchParent')
+				document.getElementById('loader').style.display = "flex"
+				const res = await fetch('/api/fetchParent', {
+					method: 'GET',
+					headers: {
+						'Authorization': `Bearer ${token}`,
+					},
+				});
 				const data = await res.json()
 				if (data.result === "pass") {
+					document.getElementById('loader').style.display = "none"
 					const parentdata = data.existingParentFolders
 					populatelist(parentdata)
 				}
 			} catch {
-
+				document.getElementById('loader').style.display = "none"
 			}
 		}
 
@@ -152,10 +175,15 @@
 			});
 		}
 
+		function checkAuthRedirect() {
+            const token = localStorage.getItem('token');
 
+            if (!token) {
+                window.location.href = '/api/';
+            }
+        }
 
-
-
+        checkAuthRedirect();
 
 	</script>
 </body>

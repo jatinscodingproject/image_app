@@ -11,6 +11,9 @@
 </head>
 
 <body id="page-top">
+    <div id="loader" class="loader" style="display: none;">
+        <div></div>
+    </div>
     <div id="wrapper">
         <nav class="navbar align-items-start sidebar sidebar-dark accordion bg-gradient-primary p-0 navbar-dark">
             <div class="container-fluid d-flex flex-column p-0"><a
@@ -172,12 +175,20 @@
     <script>
         document.addEventListener('DOMContentLoaded', async function () {
             try {
-                const res = await fetch('/api/folder-structure')
+                const token = localStorage.getItem('token');
+                document.getElementById('loader').style.display = "flex"
+                const res = await fetch('/api/folder-structure', {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                    }
+                })
                 const data = await res.json()
                 if (data.result === "pass") {
-
+                    document.getElementById('loader').style.display = "none"
                 }
             } catch {
+                document.getElementById('loader').style.display = "none"
 
             }
 
@@ -186,29 +197,43 @@
             fetchParent()
         })
 
+        const token = localStorage.getItem('token');
+
         async function fetchsub() {
             try {
-                const res = await fetch('/api/subfolder')
+                document.getElementById('loader').style.display = "flex"
+                const res = await fetch('/api/subfolder' , {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                    }
+                })
                 const data = await res.json()
                 if (data.result === "pass") {
-
+                    document.getElementById('loader').style.display = "none"
                 }
             } catch {
-
+                document.getElementById('loader').style.display = "none"
             }
         }
 
         async function fetchParent() {
             try {
-                const res = await fetch('/api/fetchParent')
+                document.getElementById('loader').style.display = "flex"
+                const res = await fetch('/api/fetchParent' ,{
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                    }
+                })
                 const data = await res.json()
-                console.log(data)
                 if (data.result === "pass") {
                     const parentdata = data.existingParentFolders
+                    document.getElementById('loader').style.display = "none"
                     populatelist(parentdata)
                 }
             } catch {
-
+                document.getElementById('loader').style.display = "none"
             }
         }
 
@@ -218,7 +243,6 @@
             parentfolder.innerHTML = ''; // Clear existing items
 
             parentdata.forEach((element, index) => {
-                console.log(`Rendering item ${index + 1}:`, element);
 
                 // Create list item
                 const listItem = document.createElement('li');
@@ -274,24 +298,28 @@
             };
 
             try {
+                document.getElementById('loader').style.display = "flex"
                 const response = await fetch('/api/createchildFolder', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`,
                     },
                     body: JSON.stringify(data),
                 });
 
                 const result = await response.json();
                 if (result.result === "pass") {
+                    document.getElementById('loader').style.display = "none"
                     showErrorPopup(result.msg);
                     location.reload();
                 } else {
+                    document.getElementById('loader').style.display = "none"
                     showErrorPopup('something went worng');
                 }
             } catch (error) {
-                console.error('Error:', error);
-                alert('An error occurred while creating the folder.');
+                document.getElementById('loader').style.display = "none"
+                showErrorPopup('An error occurred while creating the folder.');
             }
         });
         document.getElementById('createFolderForm').addEventListener('submit', async function (e) {
@@ -300,7 +328,7 @@
             const folderName = document.getElementById('folderName').value.trim();
             const username = document.getElementById('UserName').textContent.trim();
             if (!folderName) {
-                alert('Please enter a valid folder name.');
+                showErrorPopup('Please enter a valid folder name.');
                 return;
             }
 
@@ -310,22 +338,27 @@
             }
 
             try {
+                document.getElementById('loader').style.display = "flex"
                 const response = await fetch('/api/createFolder', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`,
                     },
                     body: JSON.stringify(data),
                 });
 
                 const result = await response.json();
                 if (result.result === "pass") {
+                    document.getElementById('loader').style.display = "none"
                     showErrorPopup(result.msg);
                     location.reload();
                 } else {
-                    alert('Failed to create folder: ' + result.message);
+                    document.getElementById('loader').style.display = "none"
+                    showErrorPopup('Failed to create folder');
                 }
             } catch (error) {
+                document.getElementById('loader').style.display = "none"
                 showErrorPopup("something went wrong")
             }
         });
@@ -337,6 +370,16 @@
             const errorModal = new bootstrap.Modal(document.getElementById('errorModal'));
             errorModal.show();
         }
+
+        function checkAuthRedirect() {
+            const token = localStorage.getItem('token');
+
+            if (!token) {
+                window.location.href = '/api/';
+            }
+        }
+
+        checkAuthRedirect();
 
 
     </script>

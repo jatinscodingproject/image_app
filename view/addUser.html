@@ -16,6 +16,9 @@
 </head>
 
 <body id="page-top">
+    <div id="loader" class="loader" style="display: none;">
+        <div></div>
+    </div>
     <div id="wrapper">
         <nav class="navbar align-items-start sidebar sidebar-dark accordion bg-gradient-primary p-0 navbar-dark">
             <div class="container-fluid d-flex flex-column p-0"><a
@@ -70,7 +73,8 @@
                                 </div>
                                 <div class="mb-3">
                                     <label for="username" class="form-label">Username</label>
-                                    <input type="text" class="form-control" id="username" placeholder="Enter username" maxlength="10">
+                                    <input type="text" class="form-control" id="username" placeholder="Enter username"
+                                        maxlength="10">
                                 </div>
                                 <button type="submit" class="btn btn-primary">Add User</button>
                             </form>
@@ -129,8 +133,8 @@
                     FName: firstName,
                     LName: lastName,
                     username: username,
-                    AccountTypeID:3,
-                    createdBy:createdBy
+                    AccountTypeID: 3,
+                    createdBy: createdBy
                 };
 
                 addUser(data);
@@ -139,19 +143,24 @@
 
         async function addUser(userData) {
             try {
+                document.getElementById('loader').style.display = "flex"
+                const token = localStorage.getItem('token');
                 const response = await fetch("/api/AdminUser", {
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json",
+                        'Authorization': `Bearer ${token}`,
                     },
                     body: JSON.stringify(userData),
                 });
 
                 if (response.ok) {
+                    document.getElementById('loader').style.display = "none"
                     const result = await response.json();
                     showErrorPopup(result.msg);
                 }
             } catch (error) {
+                document.getElementById('loader').style.display = "none"
                 showErrorPopup(error.msg)
             }
         }
@@ -163,6 +172,16 @@
             const errorModal = new bootstrap.Modal(document.getElementById('errorModal'));
             errorModal.show();
         }
+
+        function checkAuthRedirect() {
+            const token = localStorage.getItem('token');
+
+            if (!token) {
+                window.location.href = '/api/';
+            }
+        }
+
+        checkAuthRedirect();
 
     </script>
 </body>

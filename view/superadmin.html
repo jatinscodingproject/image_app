@@ -11,6 +11,9 @@
 </head>
 
 <body class="" style="background-color: rgb(221, 230, 230);">
+    <div id="loader" class="loader" style="display: none;">
+        <div></div>
+    </div>
     <div class="container">
         <div class="row justify-content-center">
             <div class="col-md-9 col-lg-6 col-xl-10">
@@ -78,6 +81,7 @@
             };
 
             try {
+                document.getElementById('loader').style.display = "flex"
                 const response = await fetch('/api/sulogin', {
                     method: 'POST',
                     headers: {
@@ -88,14 +92,17 @@
 
                 const data = await response.json();
                 if (data.result === "pass") {
+                    document.getElementById('loader').style.display = "none"
                     localStorage.setItem('token',data.token)
                     localStorage.setItem("pages", JSON.stringify(data.pages));
                     localStorage.setItem("username" , data.username)
                     window.location.href = "/api/home";
                 } else {
+                    document.getElementById('loader').style.display = "none"
                     showErrorPopup(data.msg || 'Login failed. Please try again.');
                 }
             } catch (error) {
+                document.getElementById('loader').style.display = "none"
                 showErrorPopup('An unexpected error occurred. Please try again later.');
             }
         });

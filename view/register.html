@@ -11,6 +11,9 @@
 </head>
 
 <body class="" style="background-color: rgb(221, 230, 230);">
+    <div id="loader" class="loader" style="display: none;">
+        <div></div>
+    </div>
     <div class="container">
         <div class="card shadow-lg o-hidden border-0 my-5">
             <div class="card-body p-0">
@@ -136,7 +139,7 @@
                 username: document.getElementById('exampleUsername').value,
                 AccountTypeID: 2
             };
-
+            document.getElementById('loader').style.display = "flex"
             fetch('/api/addUser', {
                 method: 'POST',
                 headers: {
@@ -147,19 +150,23 @@
                 .then(response => response.json())
                 .then(data => {
                     if (data.result === "pass") {
+                        document.getElementById('loader').style.display = "none"
                         const otpModal = new bootstrap.Modal(document.getElementById('otpModal'));
                         otpModal.show();
                     } else {
+                        document.getElementById('loader').style.display = "none"
                         showErrorPopup(data.msg);
                     }
                 })
                 .catch(error => {
+                    document.getElementById('loader').style.display = "none"
                     showErrorPopup('An unexpected error occurred. Please try again later.');
                 });
         });
 
         document.getElementById('otpSubmit').addEventListener('click', function () {
             const otp = document.getElementById('otpInput').value;
+            document.getElementById('loader').style.display = "flex"
 
             fetch('/api/VerifyUser', {
                 method: 'POST',
@@ -171,18 +178,21 @@
                 .then(response => response.json())
                 .then(data => {
                     if (data.result === "pass") {
+                        document.getElementById('loader').style.display = "none"
                         window.location.href = '/api/';
                     } else {
+                        document.getElementById('loader').style.display = "none"
                         showErrorPopup(data.msg);
                     }
                 })
                 .catch(error => {
+                    document.getElementById('loader').style.display = "none"
                     showErrorPopup('An unexpected error occurred. Please try again later.');
                 });
         });
 
         document.getElementById('otpResend').addEventListener('click' , function(){
-
+            document.getElementById('loader').style.display = "flex"
             fetch('/api/resend', {
                 method: 'POST',
                 headers: {
@@ -193,12 +203,14 @@
                 .then(response => response.json())
                 .then(data => {
                     if (data.result === "pass") {
-                        
+                        document.getElementById('loader').style.display = "none"
                     } else {
+                        document.getElementById('loader').style.display = "none"
                         showErrorPopup(data.msg);
                     }
                 })
                 .catch(error => {
+                    document.getElementById('loader').style.display = "none"
                     showErrorPopup('An unexpected error occurred. Please try again later.');
                 });
         })
