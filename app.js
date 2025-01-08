@@ -18,9 +18,22 @@ app.use(express.json())
 app.use(express.static(path.join(__dirname , 'public')))
 
 app.use("/api", routes)
+// app.use('/imageapp', express.static(path.resolve('F:/imageapp')));
+
+// app.use('/imageapp', (req, res, next) => {
+//     const fullPath = path.join('F:/imageapp/', req.path);
+//     console.log(`Requested File Path: ${fullPath}`);
+//     if (fs.existsSync(fullPath)) {
+//         res.sendFile(fullPath);
+//     } else {
+//         console.log('File not found');
+//         res.status(404).send('File not found');
+//     }
+// });
+
 app.use('/imageapp', express.static(path.resolve('/home/sftpuser11/test/imageapp')));
 
-
+// Custom file serving route
 app.use('/imageapp', (req, res, next) => {
     const fullPath = path.join('/home/sftpuser11/test/imageapp', req.path); // Adjust path for server
     console.log(`Requested File Path: ${fullPath}`);
