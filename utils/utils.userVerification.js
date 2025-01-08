@@ -49,11 +49,11 @@ const userVerification = {
                         </html>`
             });
 
-            console.log("Message sent: %s", info.messageId);
             await t.commit();
+            return {msg:"user mail send successfully" , result:"pass"}
         } catch (err) {
             if (t) await t.rollback();
-            return res.status(err.statusCode || HttpStatus.INTERNAL_SERVER_ERROR).json({ msg: err.message });
+            return { msg: err.message , result:"fail" };
         }
     }
 }

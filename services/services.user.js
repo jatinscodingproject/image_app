@@ -7,6 +7,7 @@ const { generateSecretTokenUser } = require('../middleware/middleware.jwt')
 const { hashedValue } = require('../utils/utils.generathashPassword')
 const { userVerification } = require('../utils/utils.userVerification');
 const { where } = require('sequelize');
+const { Op } = require('sequelize');
 
 const userServices = {
     async addUser(req, res) {
@@ -111,11 +112,19 @@ const userServices = {
             if (user.AccountTypeID === 2) {
                 Users = await model.User.findAll({ where: { createdBy: username } });
             } else if (user.AccountTypeID === 1) {
-                Users = await model.User.findAll();
+                Users = await model.User.findAll({
+                    where: {
+                      AccountTypeID: {
+                        [Op.ne]: 1
+                      }
+                    }
+                  });
             } else {
                 await t.rollback();
                 return { msg: 'Invalid AccountTypeID' , result:"fail"}
             }
+
+            console.log(Users)
 
     
             await t.commit();
