@@ -150,6 +150,7 @@
                 .then(response => response.json())
                 .then(data => {
                     if (data.result === "pass") {
+                        console.log(data)
                         document.getElementById('loader').style.display = "none"
                         const otpModal = new bootstrap.Modal(document.getElementById('otpModal'));
                         otpModal.show();
@@ -159,6 +160,7 @@
                     }
                 })
                 .catch(error => {
+                    console.log(error)
                     document.getElementById('loader').style.display = "none"
                     showErrorPopup('An unexpected error occurred. Please try again later.');
                 });

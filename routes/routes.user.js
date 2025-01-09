@@ -3,7 +3,7 @@ const router = express.Router()
 const userController = require('../controller/controller.user')
 const checkTokenMiddleware = require('../middleware/middlware.checkToken')
 
-router.post('/addUser' , checkTokenMiddleware,  userController.userController.addUser)
+router.post('/addUser',  userController.userController.addUser)
 
 router.post('/VerifyUser' , userController.userController.userVerified)
 

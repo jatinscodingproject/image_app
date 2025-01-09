@@ -4,7 +4,6 @@ const {HttpStatus} = require('../utils/utils.httpStatus')
 
 const userController = {
     async addUser(req,res){
-        console.log(req.body)
         const response = await services.userServices.addUser(req ,res);
         return res.status(HttpStatus.CREATED).json(response);
     },

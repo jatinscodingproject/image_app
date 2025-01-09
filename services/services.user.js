@@ -14,11 +14,13 @@ const userServices = {
         const t = await sequelize.transaction()
         try {
             const { FName, LName, email , password, username , AccountTypeID } = req.body;
+            console.log("body",req.body)
             const checking_user_email = await model.User.findOne({
                 where: {
                     email: email,
                 }
             }, { transaction: t });
+            
             const checking_user = await model.User.findOne({
                 where: {
                     Username: username,
@@ -49,6 +51,7 @@ const userServices = {
             await t.commit()
             return { msg: 'User Added and Verification otp sent' , result:"pass" }
         } catch (err) {
+            console.log(err)
             if (t) await t.rollback();
             return {msg:"Something Went Wrong" , result:"fail"}
         }
@@ -86,7 +89,6 @@ const userServices = {
                 }
             );
 
-    
             await t.commit();
             return {msg:"Your Account Confirmed" , result:"pass"}
         } catch (error) {

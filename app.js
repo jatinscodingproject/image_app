@@ -31,21 +31,22 @@ app.use("/api", routes)
 //     }
 // });
 
-app.use('/imageapp', express.static(path.resolve('/home/sftpuser11/test/imageapp')));
+// app.use('/imageapp', express.static(path.resolve('/home/sftpuser11/test/imageapp')));
 
-// Custom file serving route
-app.use('/imageapp', (req, res, next) => {
-    const fullPath = path.join('/home/sftpuser11/test/imageapp', req.path); // Adjust path for server
-    console.log(`Requested File Path: ${fullPath}`);
-    if (fs.existsSync(fullPath)) {
-        res.sendFile(fullPath);
-    } else {
-        console.log('File not found');
-        res.status(404).send('File not found');
-    }
-});
+// // Custom file serving route
+// app.use('/imageapp', (req, res, next) => {
+//     const fullPath = path.join('/home/sftpuser11/test/imageapp', req.path);
+//     console.log(`Requested File Path: ${fullPath}`);
+//     console.log(fs.existsSync(fullPath))
+//     if (fs.existsSync(fullPath)) {
+//         res.sendFile(fullPath);
+//     } else {
+//         console.log('File not found');
+//         res.status(404).send('File not found');
+//     }
+// });
 
-const port = process.env.PORT || 3000
+const port = process.env.PORT || 4000
 
 sequelize.sync()
     .then(() => {
