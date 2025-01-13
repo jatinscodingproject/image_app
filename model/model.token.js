@@ -8,13 +8,14 @@ const token = sequelize.define('token', {
         allowNull: false,
         primaryKey: true,
     },
-    token: {
-        type: Sequelize.STRING,
+    Createdtoken: {
+        type: Sequelize.JSON,
         allowNull: false,
     },
     expire: {
         type: Sequelize.BOOLEAN,
         allowNull: false,
+        defaultValue : false
     }
 }, {
     timestamps: true,

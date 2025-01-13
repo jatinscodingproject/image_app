@@ -50,7 +50,17 @@ const userController = {
     async toggle(req,res){
         const response = await services.userServices.toggle(req,res);
         return res.status(HttpStatus.OK).json(response);
+    },
+    async logout(req,res){
+        const response = await services.userServices.userLogout(req,res);
+        return res.status(HttpStatus.OK).json(response);
+    },
+    async changePassword(req,res){
+        console.log(99999999)
+        const response = await services.userServices.changePassword(req,res);
+        return res.status(HttpStatus.OK).json(response);
     }
+    
 }
 
 module.exports = {

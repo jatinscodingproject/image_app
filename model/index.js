@@ -6,6 +6,7 @@ const FolderPermission = require('../model/model.folderPermission');
 const Folder = require('../model/model.folder');
 const subFolder = require('../model/model.subflder')
 const ftpuser = require('../model/model.ftpuser')
+const token = require('../model/model.token')
 
 subFolder.hasMany(FolderPermission, { foreignKey: 'subfolderId' });
 FolderPermission.belongsTo(subFolder, { foreignKey: 'subfolderId' });
@@ -19,4 +20,5 @@ module.exports = {
     Folder,
     subFolder,
     ftpuser,
+    token
 };

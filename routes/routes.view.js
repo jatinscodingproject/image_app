@@ -44,6 +44,10 @@ router.get('/Createfolder',(req,res) => {
     res.sendFile(path.join(__dirname , '../view/createFolder.html'))
 })
 
+router.get('/changepassword',(req,res) => {
+    res.sendFile(path.join(__dirname , '../view/changepassword.html'))
+})
+
 router.get('/404',(req,res) => {
     res.sendFile(path.join(__dirname , '../view/404.html'))
 })

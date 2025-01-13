@@ -2,24 +2,24 @@ const express = require('express');
 const http = require('http');
 const path = require('path');
 const cors = require('cors');
-const sequelize = require('./config/db'); // Sequelize DB configuration
-const routes = require('./routes/index'); // API routes
-require('dotenv').config(); // Load environment variables
+const sequelize = require('./config/db');
+const routes = require('./routes/index');
+require('dotenv').config();
 const fs = require('fs');
 
 const app = express();
 const server = http.createServer(app);
 
-// Middleware
+
+
 app.use(cors({
-    origin: '*', // Replace '*' with specific domains if required
+    origin: '*',
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
     allowedHeaders: ['Content-Type', 'Authorization']
 }));
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
-// API Routes
 app.use("/api", routes);
 
 app.use('/imageapp', express.static(path.resolve('D:/imageapp')));
@@ -35,7 +35,6 @@ app.use('/imageapp', express.static(path.resolve('D:/imageapp')));
 //     }
 // });
 
-// Static file serving for imageapp
 const imageAppPath = path.resolve('/home/sftpuser11/test/imageapp');
 app.use('/imageapp', express.static(imageAppPath));
 
@@ -50,10 +49,9 @@ app.use('/imageapp', express.static(imageAppPath));
 //     }
 // });
 
-// Server Initialization
 const port = process.env.PORT || 3000;
 
-sequelize.sync() // Sync Sequelize models
+sequelize.sync() 
     .then(() => {
         console.log('Database tables created successfully.');
         server.listen(port, '0.0.0.0', () => {

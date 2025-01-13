@@ -27,5 +27,8 @@ router.delete(`/deleteUser/:userID`, checkTokenMiddleware ,userController.userCo
 
 router.post(`/toggle/:userID`, checkTokenMiddleware, userController.userController.toggle)
 
+router.post(`/changePass`, checkTokenMiddleware, userController.userController.changePassword)
+
+router.post(`/logout`, userController.userController.logout)
 
 module.exports = router

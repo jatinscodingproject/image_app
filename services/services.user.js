@@ -14,7 +14,6 @@ const userServices = {
         const t = await sequelize.transaction()
         try {
             const { FName, LName, email , password, username , AccountTypeID } = req.body;
-            console.log("body",req.body)
             const checking_user_email = await model.User.findOne({
                 where: {
                     email: email,
@@ -51,7 +50,6 @@ const userServices = {
             await t.commit()
             return { msg: 'User Added and Verification otp sent' , result:"pass" }
         } catch (err) {
-            console.log(err)
             if (t) await t.rollback();
             return {msg:"Something Went Wrong" , result:"fail"}
         }
@@ -125,8 +123,6 @@ const userServices = {
                 await t.rollback();
                 return { msg: 'Invalid AccountTypeID' , result:"fail"}
             }
-
-            console.log(Users)
 
     
             await t.commit();
@@ -212,6 +208,16 @@ const userServices = {
                     hasAcess:true
                 }   
             })
+            const expiredTokens = await model.token.findAll({ where: { expire: true } });
+    
+            if (expiredTokens.length > 0) {
+                await Promise.all(expiredTokens.map(async (token) => {
+                    await token.destroy();
+                }));
+            }
+            await model.token.create({
+                Createdtoken:token
+            })
             return {msg:'Logging Successfully', token , result:"pass", pages , 'username' : user.Username , 'type' : user.AccountTypeID}
         } catch (err) {
             return {msg:"Something Went Wrong" , result:"fail"}
@@ -221,7 +227,7 @@ const userServices = {
     async AdminaddUser(req, res) {
         const t = await sequelize.transaction()
         try {
-            // console.log(req.body)
+            
             const { FName, LName, username , AccountTypeID, createdBy } = req.body;
 
             const password = process.env.User_creation_password
@@ -234,11 +240,11 @@ const userServices = {
             if(checking_user){
                 return {msg:"Username Already Exists" , result:"fail"}
             } else {
-                // console.log(111111)
+               
                 message = "Admin added User";
-                // console.log(222222222222222)
+                
                 hashedPasswords = await hashedValue.generatehashPass(password)
-                // console.log(3333333333333)
+               
                 const newUser = await model.User.create({
                     FName: FName,
                     Username: username,
@@ -252,10 +258,8 @@ const userServices = {
                     AccountTypeID: AccountTypeID,
                     createdBy:createdBy
                 }, { transaction: t });
-                // console.log(4444444444444444444)
                 const user = newUser.get({ plain: true });
             }
-            // console.log('done')
             await t.commit()
             return { msg: 'New User Added' , result:"pass" }
         } catch (err) {
@@ -304,9 +308,8 @@ const userServices = {
         const t = await sequelize.transaction();
         try {
             const userId = req.params.userID;
-            // console.log(userId);
             const { Username, FName, LName } = req.body;
-            // console.log(req.body);
+           
     
             const [updatedRows] = await model.User.update(
                 { Username, FName, LName },
@@ -326,7 +329,6 @@ const userServices = {
             return { msg: "User Info Updated", result: "pass" };
         } catch (error) {
             if (t) await t.rollback();
-            // console.error(error);
             return { msg: "Something Went Wrong", result: "fail" };
         }
     },
@@ -335,7 +337,6 @@ const userServices = {
         const t = await sequelize.transaction();
         try {
             const userId = req.params.userID;
-            // console.log(req.params)
     
             if (!userId) {
                 return res.status(400).json({ msg: "User ID is required", result: "fail" });
@@ -365,7 +366,6 @@ const userServices = {
         const t = await sequelize.transaction();
         try {
             const userId = req.params.userID;
-            // console.log(userId);
             
             const { status } = req.body;
             let value;
@@ -397,7 +397,64 @@ const userServices = {
             if (t) await t.rollback();
             return { msg: "Something Went Wrong", result: "fail" };
         }
+    },
+
+    async userLogout(req,res){
+        const {userToken} = req.body 
+        const t = await sequelize.transaction()
+        try{
+
+            const tokenpresent = model.token.destroy({
+                where : {token:userToken} 
+            })
+
+            return {msg:"User Logout", result:"pass"}
+        }catch{
+            if (t) await t.rollback();
+            return { msg: "Something Went Wrong", result: "fail" };
+        }
+    },
+
+    async changePassword(req, res) {
+        console.log(req.body)
+        const { op, np, userName } = req.body;
+    
+        const t = await sequelize.transaction();
+        try {
+            const user = await model.User.findOne({ where: { Username: userName }, transaction: t });
+            
+            if (!user) {
+                return { msg: "User not found", result: "fail" };
+            }
+    
+            const isOldPasswordMatch = await hashedValue.comparehashPass(op, user.password);
+            if (!isOldPasswordMatch) {
+                return { msg: "Please Enter Correct Old Password", result: "fail" };
+            }
+    
+            const nhashedPasswords = await hashedValue.generatehashPass(np);
+    
+            const [updatedRows] = await model.User.update(
+                { password: nhashedPasswords },
+                {
+                    where: { Username: userName },
+                    transaction: t
+                }
+            );
+    
+            if (updatedRows === 0) {
+                return { msg: "Failed to update password", result: "fail" }
+            }
+    
+            await t.commit();
+    
+            return { msg: "Password Changed Successfully", result: "pass" }
+        } catch (err) {
+            if (t) await t.rollback();
+            return { msg: "Something Went Wrong", result: "fail" };
+        }
     }
+    
     
 
 }
