@@ -161,6 +161,7 @@
             const cp = document.getElementById('confirmPassword').value;
             document.getElementById('loader').style.display = "flex"
             if (np != cp){
+                document.getElementById('loader').style.display = "none"
                 showErrorPopup("Password and Confirm Password Does not Match")
             }
 

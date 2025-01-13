@@ -1,27 +1,31 @@
 const express = require('express');
 const http = require('http');
-const app = express();
-const server = http.createServer(app);
 const path = require('path');
 const cors = require('cors');
-const sequelize = require('./config/db');
-const model = require('./model/index');
-require('dotenv').config();
-const fs = require('fs')
+const sequelize = require('./config/db'); // Sequelize DB configuration
+const routes = require('./routes/index'); // API routes
+require('dotenv').config(); // Load environment variables
+const fs = require('fs');
 
-const routes = require('./routes/index');
-const exp = require('constants');
-const { json } = require('sequelize');
+const app = express();
+const server = http.createServer(app);
 
-app.use(cors())
-app.use(express.json())
-app.use(express.static(path.join(__dirname , 'public')))
+// Middleware
+app.use(cors({
+    origin: '*', // Replace '*' with specific domains if required
+    methods: ['GET', 'POST', 'PUT', 'DELETE'],
+    allowedHeaders: ['Content-Type', 'Authorization']
+}));
+app.use(express.json());
+app.use(express.static(path.join(__dirname, 'public')));
 
-app.use("/api", routes)
-// app.use('/imageapp', express.static(path.resolve('F:/imageapp')));
+// API Routes
+app.use("/api", routes);
+
+app.use('/imageapp', express.static(path.resolve('D:/imageapp')));
 
 // app.use('/imageapp', (req, res, next) => {
-//     const fullPath = path.join('F:/imageapp/', req.path);
+//     const fullPath = path.join('D:/imageapp/', req.path);
 //     console.log(`Requested File Path: ${fullPath}`);
 //     if (fs.existsSync(fullPath)) {
 //         res.sendFile(fullPath);
@@ -31,31 +35,40 @@ app.use("/api", routes)
 //     }
 // });
 
-// app.use('/imageapp', express.static(path.resolve('/home/sftpuser11/test/imageapp')));
+// Static file serving for imageapp
+const imageAppPath = path.resolve('/home/sftpuser11/test/imageapp');
+app.use('/imageapp', express.static(imageAppPath));
 
-// // Custom file serving route
-// app.use('/imageapp', (req, res, next) => {
-//     const fullPath = path.join('/home/sftpuser11/test/imageapp', req.path);
+// app.use('/home/sftpuser11/test/imageapp', (req, res) => {
+//     const fullPath = path.join(imageAppPath, req.path);
 //     console.log(`Requested File Path: ${fullPath}`);
-//     console.log(fs.existsSync(fullPath))
 //     if (fs.existsSync(fullPath)) {
 //         res.sendFile(fullPath);
 //     } else {
-//         console.log('File not found');
+//         console.error('File not found:', fullPath);
 //         res.status(404).send('File not found');
 //     }
 // });
 
-const port = process.env.PORT || 4000
+// Server Initialization
+const port = process.env.PORT || 3000;
 
-sequelize.sync()
+sequelize.sync() // Sync Sequelize models
     .then(() => {
-        console.log('Tables created successfully');
-        server.listen(port, () => {
-            console.log(`Server running on port ${port}`);
+        console.log('Database tables created successfully.');
+        server.listen(port, '0.0.0.0', () => {
+            console.log(`Server running on http://47.91.121.123:${port}`);
         });
     })
     .catch((error) => {
         console.error('Error synchronizing database:', error);
     });
 
+// Error Handling for Uncaught Exceptions
+process.on('uncaughtException', (err) => {
+    console.error('Unhandled exception:', err);
+});
+
+process.on('unhandledRejection', (reason, promise) => {
+    console.error('Unhandled rejection:', reason);
+});

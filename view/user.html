@@ -55,6 +55,9 @@
 									</a>
 									<div class="dropdown-menu shadow dropdown-menu-end animated--grow-in">
 										<a class="dropdown-item logout-btn" href="#"><i
+											class="fas fa-lock fa-sm fa-fw me-2 text-gray-400"></i>&nbsp;Change
+										Password</a>
+										<a class="dropdown-item logout-btn" href="#"><i
 												class="fas fa-sign-out-alt fa-sm fa-fw me-2 text-gray-400"></i>&nbsp;Logout</a>
 									</div>
 								</div>
@@ -160,6 +163,7 @@
 			if (username) {
 				fetchUser(username);
 			} else {
+				document.getElementById('loader').style.display = "none"
 				showErrorPopup("Username not found.");
 			}
 		});

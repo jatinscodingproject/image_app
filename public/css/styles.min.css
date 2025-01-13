@@ -218,3 +218,10 @@
     height: 50vh;
 }
 
+.sticky {
+    position: sticky;
+    top: 0;
+    z-index: 1030;
+    height: 100vh;
+    /* overflow-y: auto; */
+}
