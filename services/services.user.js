@@ -279,20 +279,20 @@ const userServices = {
     },
 
     async changePassword(req, res) {
-        const { username , oldPassword, newPassword } = req.body;
+        const { userName , op, np} = req.body;
         try {
-            const user = await model.User.findOne({ where: { Username: username } });;
+            const user = await model.User.findOne({ where: { Username: userName } });;
     
             if (!user) {
                 return {msg:"User Does not Exists", result:"fail"}
             }
     
-            const isOldPasswordMatch = await hashedValue.comparehashPass(oldPassword, user.password);
+            const isOldPasswordMatch = await hashedValue.comparehashPass(op, user.password);
             if (!isOldPasswordMatch) {
                 return {msg:"Please Enter Correct Old Password" , result:"fail"};
             }
     
-            const hashedPassword = await hashedValue.generatehashPass(newPassword);
+            const hashedPassword = await hashedValue.generatehashPass(np);
     
             user.password = hashedPassword;
             user.isPasswordChange = false;
@@ -300,6 +300,56 @@ const userServices = {
     
             return { msg: "Password changed successfully", result: "pass" };
         } catch (err) {
+            return { msg: "Something went wrong", result: "fail" };
+        }
+    },
+
+    async forgetPasswordotp(req, res) {
+        const { email } = req.body;
+        try {
+            const user = await model.User.findOne({ where: { email: email } });
+            
+            if (!user) {
+                return { msg: "User Does not Exist", result: "fail" };
+            }
+    
+            await userVerification.sendEmailOTP(email);
+            
+            return { msg: "OTP Sent to Email", result: "pass" };
+        } catch (err) {
+            return { msg: "Something went wrong", result: "fail" };
+        }
+    },
+    
+    async forgetPasswordset(req, res) {
+        const { email, npass , cotp } = req.body;
+    
+        const t = await sequelize.transaction();
+        try {
+            const user = await model.User.findOne({
+                where: {
+                    email: email,
+                    generatedEmailOtp: cotp
+                },
+                transaction: t
+            });
+    
+            if (!user) {
+                await t.rollback();
+                return { msg: 'Invalid OTP', result: "fail" };
+            }
+    
+            const hashedNewPassword = await hashedValue.generatehashPass(npass);
+    
+            await user.update({
+                password: hashedNewPassword
+            }, { transaction: t });
+    
+            await t.commit();
+    
+            return { msg: "Password changed successfully", result: "pass" };
+        } catch (err) {
+            if (t) await t.rollback();
             return { msg: "Something went wrong", result: "fail" };
         }
     },
@@ -415,45 +465,7 @@ const userServices = {
         }
     },
 
-    async changePassword(req, res) {
-        console.log(req.body)
-        const { op, np, userName } = req.body;
-    
-        const t = await sequelize.transaction();
-        try {
-            const user = await model.User.findOne({ where: { Username: userName }, transaction: t });
-            
-            if (!user) {
-                return { msg: "User not found", result: "fail" };
-            }
-    
-            const isOldPasswordMatch = await hashedValue.comparehashPass(op, user.password);
-            if (!isOldPasswordMatch) {
-                return { msg: "Please Enter Correct Old Password", result: "fail" };
-            }
-    
-            const nhashedPasswords = await hashedValue.generatehashPass(np);
-    
-            const [updatedRows] = await model.User.update(
-                { password: nhashedPasswords },
-                {
-                    where: { Username: userName },
-                    transaction: t
-                }
-            );
-    
-            if (updatedRows === 0) {
-                return { msg: "Failed to update password", result: "fail" }
-            }
-    
-            await t.commit();
-    
-            return { msg: "Password Changed Successfully", result: "pass" }
-        } catch (err) {
-            if (t) await t.rollback();
-            return { msg: "Something Went Wrong", result: "fail" };
-        }
-    }
+   
     
     
 

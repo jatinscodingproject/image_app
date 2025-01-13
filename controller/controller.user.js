@@ -1,5 +1,5 @@
 const services = require('../services/index');
-const { Resendotp, changePassword } = require('../services/services.user');
+const { Resendotp, changePassword, forgetPasswordotp, forgetPasswordset } = require('../services/services.user');
 const {HttpStatus} = require('../utils/utils.httpStatus')
 
 const userController = {
@@ -32,6 +32,7 @@ const userController = {
         return res.status(HttpStatus.OK).json(response);
     },
     async changePassword(req,res){
+        console.log(9999999999)
         const response = await services.userServices.changePassword(req,res);
         return res.status(HttpStatus.OK).json(response);
     },
@@ -55,9 +56,12 @@ const userController = {
         const response = await services.userServices.userLogout(req,res);
         return res.status(HttpStatus.OK).json(response);
     },
-    async changePassword(req,res){
-        console.log(99999999)
-        const response = await services.userServices.changePassword(req,res);
+    async forgetPasswordotp(req,res){
+        const response = await services.userServices.forgetPasswordotp(req,res);
+        return res.status(HttpStatus.OK).json(response);
+    },
+    async forgetPasswordset(req,res){
+        const response = await services.userServices.forgetPasswordset(req,res);
         return res.status(HttpStatus.OK).json(response);
     }
     

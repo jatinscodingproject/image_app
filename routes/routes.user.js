@@ -17,7 +17,7 @@ router.post('/AdminUser' , checkTokenMiddleware , userController.userController.
 
 router.post('/resend' , userController.userController.Resendotp)
 
-router.post('/changePassword' , userController.userController.changePassword)
+router.post('/changePassword' , checkTokenMiddleware, userController.userController.changePassword)
 
 router.get('/getAdmin', userController.userController.fetchAdmin)
 
@@ -27,8 +27,11 @@ router.delete(`/deleteUser/:userID`, checkTokenMiddleware ,userController.userCo
 
 router.post(`/toggle/:userID`, checkTokenMiddleware, userController.userController.toggle)
 
-router.post(`/changePass`, checkTokenMiddleware, userController.userController.changePassword)
+router.post(`/logout`, userController.userController.logout);
 
-router.post(`/logout`, userController.userController.logout)
+router.post(`/fpo`, userController.userController.forgetPasswordotp)
+
+router.post(`/fpc`, userController.userController.forgetPasswordset)
+
 
 module.exports = router
