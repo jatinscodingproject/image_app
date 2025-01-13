@@ -4,6 +4,7 @@ const path = require('path');
 const model = require('../model/index');
 const sequelize = require('../config/db');
 const { dir } = require('console');
+const { Sequelize } = require('sequelize');
 
 const BASE_DIRECTORY = path.resolve('./serverAssets');
 
@@ -194,11 +195,17 @@ const folderServices = {
             const { parentname } = req.body
             const childfolder = await model.subFolder.findAll({
                 attributes: ['name', 'path', 'parentname', 'id'],
-                where: { parentname: parentname }
-            })
+                where: { parentname: parentname },
+            });
+
+        
+    
+            if (!childfolder.length) {
+                return { msg: "No child folders found", result: "fail" };
+            }
 
             return { msg: "child folder fetched successfully", result: "pass", childfolder }
-        } catch {
+        } catch(error) {
             return { msg: "something went worng", result: "fail" }
 
         }
