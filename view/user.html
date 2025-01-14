@@ -6,7 +6,9 @@
 	<meta name="viewport" content="width=device-width, initial-scale=1.0, shrink-to-fit=no">
 	<title>User - ImageApp</title>
 	<link rel="stylesheet" href="/bootstrap/css/bootstrap.min.css?h=39f612d0af5b74e3058ab6d89e114e6a">
-	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" integrity="sha512-Evv84Mr4kqVGRNSgIGL/F/aIDqQb7xQ2vcrdIwxfjThSH8CSR7PBEakCr51Ck+w+/U6swU2Im1vVX0SVk9ABhg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css"
+		integrity="sha512-Evv84Mr4kqVGRNSgIGL/F/aIDqQb7xQ2vcrdIwxfjThSH8CSR7PBEakCr51Ck+w+/U6swU2Im1vVX0SVk9ABhg=="
+		crossorigin="anonymous" referrerpolicy="no-referrer" />
 	<script src="/js/jquery.min.js?h=f56d3e84f8f4fb156548d390a8a85d8e"></script>
 	<script src="/bootstrap/js/bootstrap.min.js?h=374d178d651fa0eaf680a1fa7b40c788"></script>
 	<script src="/js/script.min.js?h=bdf36300aae20ed8ebca7e88738d5267"></script>
@@ -17,10 +19,10 @@
 
 <body id="page-top">
 	<div id="loader" class="loader" style="display: none;">
-        <div></div>
-    </div>
+		<div></div>
+	</div>
 	<div id="wrapper">
-		<nav class="navbar align-items-start sidebar sidebar-dark accordion bg-gradient-primary p-0 navbar-dark">
+		<nav class="navbar align-items-start sidebar sidebar-dark accordion bg-gradient-primary p-0 navbar-dark sticky">
 			<div class="container-fluid d-flex flex-column p-0">
 				<a class="navbar-brand d-flex justify-content-center align-items-center sidebar-brand m-0" href="#">
 					<div class="sidebar-brand-icon rotate-n-15"></div>
@@ -54,9 +56,9 @@
 										<!-- Use a valid image path -->
 									</a>
 									<div class="dropdown-menu shadow dropdown-menu-end animated--grow-in">
-										<a class="dropdown-item change-btn" href="#"><i
-											class="fas fa-lock fa-sm fa-fw me-2 text-gray-400"></i>&nbsp;Change
-										Password</a>
+										<a class="dropdown-item change-btn" href="/api/changepassword"><i
+												class="fas fa-lock fa-sm fa-fw me-2 text-gray-400"></i>&nbsp;Change
+											Password</a>
 										<a class="dropdown-item logout-btn" href="#"><i
 												class="fas fa-sign-out-alt fa-sm fa-fw me-2 text-gray-400"></i>&nbsp;Logout</a>
 									</div>
@@ -151,13 +153,24 @@
 		</div>
 	</div>
 
+	<div id="customDeletePopup" class="popup-overlay" style="display: none;">
+		<div class="popup-content">
+			<h2>Confirm Deletion</h2>
+			<p>Are you sure you want to delete this user?</p>
+			<div class="popup-actions">
+				<button id="confirmDeleteBtn" class="btn btn-danger">Delete</button>
+				<button id="cancelDeleteBtn" class="btn btn-secondary">Cancel</button>
+			</div>
+		</div>
+	</div>
+
 
 	<script src="/js/chart.min.min.js?h=bd9843d1866f45d1406a12f7de05f9ff"></script>
 	<script src="/js/pages.js"></script>
 	<script src="/js/logout.js"></script>
 	<script>
 		document.addEventListener("DOMContentLoaded", function () {
-			
+
 			const username = document.getElementById('UserName').textContent.trim();
 
 			if (username) {
@@ -287,7 +300,6 @@
 				FName: firstName,
 				LName: lastName,
 			};
-			document.getElementById('loader').style.display = "flex"
 			fetch(`/api/editUser/${userId}`, {
 				method: 'POST',
 				headers: {
@@ -299,11 +311,9 @@
 				.then(response => response.json())
 				.then(data => {
 					if (data.result === "pass") {
-						document.getElementById('loader').style.display = "none"
 						$('#editUserModal').modal('hide');
 						location.reload()
 					} else {
-						document.getElementById('loader').style.display = "none"
 						showErrorPopup('Error updating user');
 					}
 				})
@@ -315,8 +325,14 @@
 
 
 		function deleteUser(userId) {
-			document.getElementById('loader').style.display = "flex"
-			if (confirm("Are you sure you want to delete this user?")) {
+			const popup = document.getElementById('customDeletePopup');
+			const confirmDeleteBtn = document.getElementById('confirmDeleteBtn');
+			const cancelDeleteBtn = document.getElementById('cancelDeleteBtn');
+
+			popup.style.display = 'flex';
+
+			confirmDeleteBtn.onclick = () => {
+				popup.style.display = 'none';
 				fetch(`/api/deleteUser/${userId}`, {
 					method: 'DELETE',
 					headers: {
@@ -326,25 +342,26 @@
 				})
 					.then(response => response.json())
 					.then(data => {
-						
 						if (data.status === "pass") {
-							document.getElementById('loader').style.display = "none"
 							showSuccessPopup("User deleted successfully.");
-							location.reload
+							location.reload();
 						} else {
-							document.getElementById('loader').style.display = "none"
 							showErrorPopup(data.msg || "Failed to delete user.");
 						}
 					})
 					.catch(error => {
-						document.getElementById('loader').style.display = "none"
 						showErrorPopup("Something went wrong while deleting the user.");
 					});
-			}
+			};
+
+			cancelDeleteBtn.onclick = () => {
+				popup.style.display = 'none';
+			};
 		}
 
+
 		function toggleUserStatus(userId, isActive) {
-			document.getElementById('loader').style.display = "flex"
+			// document.getElementById('loader').style.display = "flex"
 			fetch(`/api/toggle/${userId}`, {
 				method: 'POST',
 				headers: {
@@ -356,16 +373,13 @@
 				.then(response => response.json())
 				.then(data => {
 					if (data.result === "pass") {
-						document.getElementById('loader').style.display = "none"
 						showSuccessPopup("User status updated successfully.");
 						location.reload()
 					} else {
-						document.getElementById('loader').style.display = "none"
 						showErrorPopup(data.msg || "Failed to update user status.");
 					}
 				})
 				.catch(error => {
-					document.getElementById('loader').style.display = "none"
 					showErrorPopup("Something went wrong while updating user status.");
 				});
 		}
@@ -387,14 +401,14 @@
 		}
 
 		function checkAuthRedirect() {
-            const token = localStorage.getItem('token');
+			const token = localStorage.getItem('token');
 
-            if (!token) {
-                window.location.href = '/api/';
-            }
-        }
+			if (!token) {
+				window.location.href = '/api/';
+			}
+		}
 
-        checkAuthRedirect();
+		checkAuthRedirect();
 	</script>
 </body>
 

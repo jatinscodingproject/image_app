@@ -65,7 +65,7 @@ function createFolders(baseDirectory, folderName) {
 
     try {
         if (fs.existsSync(targetDirectory)) {
-            return `Folder already exists: ${targetDirectory}`;
+            return "Folder already exists";
         }
 
         fs.mkdirSync(targetDirectory, { recursive: true });
@@ -176,7 +176,6 @@ const folderServices = {
             return { error: 'An error occurred while fetching folder structure', result: "fail" };
         }
     },
-
 
     async fetchParentfolder(req, res) {
         try {
@@ -356,7 +355,6 @@ const folderServices = {
         }
     },
     
-
     async getFolderContents(req, res) {
         const { folderPath } = req.body;
 
@@ -380,6 +378,10 @@ const folderServices = {
             const { folderName , username } = req.body;
             const foldercreation = createFolders(BASE_DIRECTORY , folderName)
 
+            if (foldercreation === "Folder already exists"){
+                return {msg:"folder already exists" , result:"passed"}
+            }
+
             return {msg : `${folderName} created successfully` , result:"pass" , foldercreation}
         }catch(err){
             return {msg : "Folder cant be created" , result:"fail"}
@@ -394,6 +396,11 @@ const folderServices = {
             const childFolderPath = `${BASE_DIRECTORY}/${parentname}`;
     
             const folderCreated = createFolders(childFolderPath , folderName)
+
+            if (folderCreated === "Folder already exists"){
+                return {msg:"folder already exists" , result:"passed"}
+            }
+
             if (!folderCreated) {
                 return res.status(500).json({ success: false, message: 'Failed to create folder on the server.' });
             }
