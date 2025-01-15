@@ -88,6 +88,9 @@
 									</div>
 								</div>
 							</div>
+							<div class="row mt-5" id="thumbnailContainer">
+								<!-- Thumbnails will be appended here dynamically -->
+							</div>
 						</div>
 					</div>
 				</div>
@@ -124,7 +127,8 @@
 	<script src="/js/pages.js"></script>
 	<script src="/js/logout.js"></script>
 	<script>
-		let foldersData = []; // Array to store the folder structure for search filtering
+		let foldersData = [];
+		let foldersPath = [];
 		document.addEventListener('DOMContentLoaded', async function () {
 			document.getElementById('loader').style.display = 'flex'
 			const token = localStorage.getItem('token')
@@ -144,7 +148,7 @@
 				});
 
 				const data = await res.json();
-				
+
 				if (data.result === "pass") {
 					document.getElementById('loader').style.display = "none"
 					const folderStructureElement = document.getElementById('folderStructure');
@@ -161,8 +165,8 @@
 		const token = localStorage.getItem('token')
 
 		function renderMainFolders(mainFolders, parentElement) {
+			foldersPath = []
 			if (Array.isArray(mainFolders)) {
-				// Store folder data globally for filtering
 				foldersData = mainFolders;
 
 				mainFolders.forEach(folder => {
@@ -172,9 +176,8 @@
 
 					let folderName = '';
 					let folderPath = '';
-					
+
 					if (type === '1') {
-						// Handle the case for super admin
 						folderName = folder.name;
 						folderPath = folder.path;
 
@@ -189,7 +192,7 @@
 							folder.forEach(subFolder => {
 								folderName = subFolder.name || 'No Folder Name';
 								folderPath = subFolder.path || '';
-
+								foldersPath.push(folderPath)
 								folderItem.innerHTML += `
                             <div class="folder-name">
                                 <i class="fas fa-folder"></i> ${folderName}
@@ -197,7 +200,7 @@
                             <div class="folder-content"></div>
                         `;
 
-								
+
 							});
 						} else {
 							folderName = 'Unknown Folder';
@@ -257,8 +260,126 @@
 
 		let folderHTML;
 
+		document.getElementById('date').addEventListener('change', async function (event) {
+			const selectedDate = event.target.value;
+
+			const data = {
+				foldersPath: foldersPath,
+				selectedDate: selectedDate
+			};
+			document.getElementById('loader').style.display = "flex";
+			try {
+				const response = await fetch(`/api/getThumbnailbyDate`, {
+					method: 'POST',
+					headers: {
+						'Content-Type': 'application/json',
+						'Authorization': `Bearer ${token}`
+					},
+					body: JSON.stringify(data)
+				});
+
+				const datass = await response.json();
+				
+
+				if (datass.result === "pass") {
+					document.getElementById('loader').style.display = "none";
+					document.getElementById('thumbnailContainer').innerHTML = '';
+
+					const allFilesByDate = datass.allfilesbydate;
+
+					allFilesByDate.forEach(file => {
+						// const filePath = file.replace(/^D:/, '').replace(/\\/g, '/');
+
+						const filePath = file.replace(/^.*\/imageapp/, '/imageapp').replace(/\\/g, '/');
+						const fileExtension = file.split('.').pop().toLowerCase();
+						if (['jpg', 'jpeg', 'png', 'gif'].includes(fileExtension)) {
+							const thumbnailDiv = document.createElement('div');
+							thumbnailDiv.classList.add('col-md-3', 'mb-4');
+
+							const imgElement = document.createElement('img');
+							imgElement.src = filePath;
+							imgElement.classList.add('img-thumbnail');
+							imgElement.alt = 'Thumbnail';
+
+							imgElement.addEventListener('click', () => {
+								// const relativePath = file.replace(/^.*\/imageapp/, '/imageapp').replace(/\\/g, '/');
+								const thumbnailView = document.getElementById('thumbnailView');
+								const thumbnailContainer = document.getElementById('thumbnailImage');
+								const fullscreenIcon = document.getElementById('fullscreenIcon');
+								const downloadIcon = document.getElementById('downloadIcon');
+
+								if (!thumbnailView || !thumbnailContainer) {
+									document.getElementById('loader').style.display = "none";
+									showErrorPopup('Thumbnail view or image element not found!');
+									return;
+								}
+
+								if (['jpg', 'jpeg', 'png', 'gif'].includes(fileExtension)) {
+									thumbnailContainer.innerHTML = `<img src="${filePath}" alt="Thumbnail" />`;
+									thumbnailView.style.display = 'flex';
+
+									fullscreenIcon.onclick = () => {
+										const imgElement = thumbnailContainer.querySelector('img');
+										if (imgElement.requestFullscreen) {
+											imgElement.requestFullscreen();
+										} else if (imgElement.webkitRequestFullscreen) {
+											imgElement.webkitRequestFullscreen();
+										} else if (imgElement.msRequestFullscreen) {
+											imgElement.msRequestFullscreen();
+										}
+									};
+								} else {
+									document.getElementById('loader').style.display = "none";
+									showErrorPopup('Unsupported file format');
+								}
+
+								downloadIcon.onclick = () => {
+									const link = document.createElement('a');
+									link.href = relativePath;
+									link.download = `file.${fileExtension}`;
+									link.click();
+								};
+							});
+
+							thumbnailDiv.appendChild(imgElement);
+
+							document.getElementById('thumbnailContainer').appendChild(thumbnailDiv);
+						}
+					});
+				}
+			} catch (error) {
+				document.getElementById('loader').style.display = "none ";
+				showErrorPopup('Something Went Wrong');
+			}
+		});
+
+
+		function displayFullScreenThumbnail(filePath) {
+			const thumbnailView = document.getElementById('thumbnailView');
+			const thumbnailImage = document.getElementById('thumbnailImage');
+
+			thumbnailView.style.display = 'block';
+			thumbnailImage.innerHTML = `<img src="${filePath}" class="img-fluid" />`;
+
+			document.getElementById('fullscreenIcon').onclick = () => {
+				window.open(filePath, '_blank');
+			};
+
+			document.getElementById('downloadIcon').onclick = () => {
+				const link = document.createElement('a');
+				link.href = filePath;
+				link.download = filePath.split('\\').pop();
+				link.click();
+			};
+
+			document.getElementById('closeThumbnailView').addEventListener('click', () => {
+				thumbnailView.style.display = 'none';
+			});
+		}
+
+
 		function renderFolders(folders, parentElement) {
-			parentElement.innerHTML = ''; // Clear the previous folder list
+			parentElement.innerHTML = '';
 			folders.forEach(folder => {
 				const folderItem = document.createElement('div');
 				folderItem.classList.add('folder-item');
@@ -333,7 +454,7 @@
 
 		function filterFolders() {
 			const searchQuery = document.getElementById('globalSearch').value.toLowerCase();
-			
+
 			const filteredFolders = foldersData.filter(folder => folder.name.toLowerCase().includes(searchQuery));
 
 			const folderStructureElement = document.getElementById('folderStructure');
@@ -343,7 +464,8 @@
 		function displayThumbnail(filePath) {
 			const relativePath = filePath.replace(/^.*\/imageapp/, '/imageapp').replace(/\\/g, '/');
 
-
+			// const relativePath = filePath.replace(/^D:/, '').replace(/\\/g, '/');
+			
 			const thumbnailView = document.getElementById('thumbnailView');
 			const thumbnailContainer = document.getElementById('thumbnailImage');
 			const fullscreenIcon = document.getElementById('fullscreenIcon');
@@ -356,6 +478,8 @@
 			}
 
 			const fileExtension = filePath.split('.').pop().toLowerCase();
+
+			
 
 			if (['jpg', 'jpeg', 'png', 'gif'].includes(fileExtension)) {
 				thumbnailContainer.innerHTML = `<img src="${relativePath}" alt="Thumbnail" />`;

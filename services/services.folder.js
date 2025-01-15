@@ -39,6 +39,7 @@ function getFolderHierarchy(directoryPath) {
     return results;
 }
 
+
 const getFolderContents = (folderPath) => {
     if (fs.existsSync(folderPath)) {
         const contents = fs.readdirSync(folderPath);
@@ -75,13 +76,67 @@ function createFolders(baseDirectory, folderName) {
     }
 }
 
+function getFolderPaths(directoryPath) {
+    if (!fs.existsSync(directoryPath)) {
+        throw new Error(`Directory not found: ${directoryPath}`);
+    }
+
+    const items = fs.readdirSync(directoryPath, { withFileTypes: true });
+
+    const folderPaths = items
+        .filter(dirent => dirent.isDirectory())
+        .map(dirent => path.join(directoryPath, dirent.name));
+
+    return folderPaths;
+}
+
 
 async function getSubfolders(directoryPath) {
     const filesAndFolders = await fs.promises.readdir(directoryPath, { withFileTypes: true });
+
     return filesAndFolders
         .filter((item) => item.isDirectory())
         .map((folder) => folder.name);
 }
+
+async function getSubfolderssss(directoryPath) {
+    try {
+        const filesAndFolders = await fs.promises.readdir(directoryPath, { withFileTypes: true });
+
+        // Return the full path for each subfolder
+        return filesAndFolders
+            .filter((item) => item.isDirectory()) // Filter only directories
+            .map((folder) => path.join(directoryPath, folder.name)); // Return full path of each subfolder
+    } catch (error) {
+        console.error('Error reading directory:', error);
+        return [];
+    }
+}
+
+async function getAllFilesInFolder(directoryPath) {
+    let results = [];
+    try {
+        const items = await fs.promises.readdir(directoryPath, { withFileTypes: true });
+
+        for (let item of items) {
+            const fullPath = path.join(directoryPath, item.name);
+
+            // If it's a folder, recurse into it
+            if (item.isDirectory()) {
+                const subfolderFiles = await getAllFilesInFolder(fullPath); // Recursively fetch files from subfolder
+                results = results.concat(subfolderFiles); // Add subfolder files to results
+            } else {
+                
+                results.push(fullPath);
+            }
+        }
+    } catch (error) {
+        
+        console.error(`Error reading directory: ${directoryPath}`, error.message);
+    }
+    return results;
+}
+
 
 const folderServices = {
     async getfolderstructure(req, res) {
@@ -316,9 +371,13 @@ const folderServices = {
                     folderPath.replace(/\\/g, '/').replace('F:', '..')
                 );
     
-    
                 try {
-                    const folderStructure = updatedFolderPaths.map(folderPath => getFolderHierarchy(path.resolve(folderPath)));
+                    const newfolderStructure = updatedFolderPaths.map(folderPath => getFolderPaths(path.resolve(folderPath)));
+
+                    const flattenedFolderPaths = newfolderStructure.flat();
+                    
+                    const folderStructure = flattenedFolderPaths.map(newFolderPath => getFolderHierarchy(path.resolve(newFolderPath)));
+                    
                     return { msg: "Folders for admin with access", result: "pass", folderStructure };
                 } catch (error) {
                     return { msg: 'Error retrieving folder structure', result: 'error', error: error.message };
@@ -379,7 +438,7 @@ const folderServices = {
             const foldercreation = createFolders(BASE_DIRECTORY , folderName)
 
             if (foldercreation === "Folder already exists"){
-                return {msg:"folder already exists" , result:"passed"}
+                return {msg:"folder already exits" , result:"passed"}
             }
 
             return {msg : `${folderName} created successfully` , result:"pass" , foldercreation}
@@ -398,7 +457,7 @@ const folderServices = {
             const folderCreated = createFolders(childFolderPath , folderName)
 
             if (folderCreated === "Folder already exists"){
-                return {msg:"folder already exists" , result:"passed"}
+                return {msg:"folder already exits" , result:"passed"}
             }
 
             if (!folderCreated) {
@@ -417,8 +476,47 @@ const folderServices = {
                 message: 'An error occurred while creating the child folder.', result:"fail"
             }
         }
-    }
+    },
+
+    async getThumbnailByCode(req, res) {
+        const { foldersPath, selectedDate } = req.body;
     
+        if (!selectedDate || !foldersPath || foldersPath.length === 0) {
+            return res.status(400).json({ msg: 'Invalid data' });
+        }
+    
+        const [year, month, day] = selectedDate.split('-');
+    
+        const updatedFolderPaths = [];
+    
+        try {
+            for (let folderPath of foldersPath) {
+                const subfolders = await getSubfolderssss(folderPath);
+               
+                const updatedSubfolders = subfolders.map(subfolder => {
+                    return path.join(subfolder, year, month, day);
+                });
+    
+                updatedFolderPaths.push(...updatedSubfolders);
+            }
+    
+            const allfilesbydate = [];
+    
+            for (let folder of updatedFolderPaths) {
+                try {
+                    const files = await getAllFilesInFolder(folder);
+                    allfilesbydate.push(...files);
+                } catch (error) {
+                    console.error(`Error reading folder: ${folder}`, error.message);
+                }
+            }
+    
+            return { msg: 'Updated folder paths', allfilesbydate , result:"pass" }
+            
+        } catch (error) {
+            return { msg: 'something went wrong', result:"fail" };
+        }
+    } 
 };
 
 module.exports = folderServices;

@@ -43,6 +43,10 @@ const folderController = {
     async createchildFolder(req,res){
         const response = await services.folderServices.createchildFolder(req ,res);
         return res.status(HttpStatus.CREATED).json(response);
+    },
+    async getThumbnailByDate(req,res){
+        const response = await services.folderServices.getThumbnailByCode(req ,res);
+        return res.status(HttpStatus.CREATED).json(response);
     }
 }
 

@@ -22,7 +22,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 app.use("/api", routes);
 
-app.use('/imageapp', express.static(path.resolve('D:/imageapp')));
+// app.use('/imageapp', express.static(path.resolve('D:/imageapp')));
 
 // app.use('/imageapp', (req, res, next) => {
 //     const fullPath = path.join('D:/imageapp/', req.path);
