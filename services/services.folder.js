@@ -401,7 +401,12 @@ const folderServices = {
                 );
     
                 try {
-                    const folderStructure = updatedFolderPaths.map(folderPath => getFolderHierarchy(path.resolve(folderPath)));
+                    const newfolderStructure = updatedFolderPaths.map(folderPath => getFolderPaths(path.resolve(folderPath)));
+
+                    const flattenedFolderPaths = newfolderStructure.flat();
+                    
+                    const folderStructure = flattenedFolderPaths.map(newFolderPath => getFolderHierarchy(path.resolve(newFolderPath)));
+                    
                     return { msg: "Folders for admin with access", result: "pass", folderStructure };
                 } catch (error) {
                     return { msg: 'Error retrieving folder structure', result: 'error', error: error.message };

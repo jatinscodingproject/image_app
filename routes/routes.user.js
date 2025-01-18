@@ -33,5 +33,7 @@ router.post(`/fpo`, userController.userController.forgetPasswordotp)
 
 router.post(`/fpc`, userController.userController.forgetPasswordset)
 
+router.post(`/changePasswordFirst`, userController.userController.changePasswordFirstLogging)
+
 
 module.exports = router

@@ -465,9 +465,31 @@ const userServices = {
         }
     },
 
-   
+    async changePasswordFirstLogging(req, res) {
+        const { username , oldPassword, newPassword } = req.body;
+        try {
+            const user = await model.User.findOne({ where: { Username: username } });;
     
+            if (!user) {
+                return {msg:"User Does not Exists", result:"fail"}
+            }
     
+            const isOldPasswordMatch = await hashedValue.comparehashPass(oldPassword, user.password);
+            if (!isOldPasswordMatch) {
+                return {msg:"Please Enter Correct Old Password" , result:"fail"};
+            }
+    
+            const hashedPassword = await hashedValue.generatehashPass(newPassword);
+    
+            user.password = hashedPassword;
+            user.isPasswordChange = false;
+            await user.save();
+    
+            return { msg: "Password changed successfully", result: "pass" };
+        } catch (err) {
+            return { msg: "Something went wrong", result: "fail" };
+        }
+    },  
 
 }
 
