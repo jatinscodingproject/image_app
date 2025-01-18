@@ -413,9 +413,9 @@ const folderServices = {
                 }
             }
     
-            return res.json({ msg: "Invalid user role", result: "fail" });
+            return { msg: "Invalid user role", result: "fail" };
         } catch (error) {
-            return res.json({ msg: "Something went wrong", result: "fail", error: error.message });
+            return { msg: "Something went wrong", result: "fail", error: error.message };
         }
     },
     
@@ -425,15 +425,15 @@ const folderServices = {
         const contents = getFolderContents(folderPath);
 
         if (contents.length > 0) {
-            res.json({
+            return {
                 result: 'pass',
                 folderContents: contents
-            });
+            };
         } else {
-            res.json({
+            return {
                 result: 'fail',
                 msg: 'No contents found'
-            });
+            };
         }
     },
 
@@ -466,7 +466,7 @@ const folderServices = {
             }
 
             if (!folderCreated) {
-                return res.status(500).json({ success: false, message: 'Failed to create folder on the server.' });
+                return { success: false, message: 'Failed to create folder on the server.' };
             }
     
             const savedData = await model.ftpuser.create({
@@ -487,7 +487,7 @@ const folderServices = {
         const { foldersPath, selectedDate } = req.body;
     
         if (!selectedDate || !foldersPath || foldersPath.length === 0) {
-            return res.status(400).json({ msg: 'Invalid data' });
+            return { msg: 'Invalid data' };
         }
     
         const [year, month, day] = selectedDate.split('-');

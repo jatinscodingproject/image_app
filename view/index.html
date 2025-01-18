@@ -60,7 +60,7 @@
 					</div>
 				</nav>
 				<div class="container-fluid">
-					<h3 class="text-dark mb-4">Folder Structure</h3>
+
 					<div class="card shadow">
 						<div class="card-header py-3">
 							<p class="text-primary m-0 fw-bold">Accessible Folders</p>
@@ -73,6 +73,12 @@
 							<div class="search-container my-3">
 								<input type="date" id="date" class="form-control"
 									placeholder="Search for a files by date">
+							</div>
+							<div class="search-container my-3 d-flex justify-content-center">
+								<button id="todayPhotos" class="btn btn-primary mt-2 me-2"
+									onclick="filterByToday()">Today's Photos</button>
+								<button id="yesterdayPhotos" class="btn btn-secondary mt-2"
+									onclick="filterByYesterday()">Yesterday's Photos</button>
 							</div>
 							<div class="row">
 								<div class="col">
@@ -98,7 +104,7 @@
 			</div>
 			<footer class="bg-white sticky-footer">
 				<div class="container my-auto">
-					<div class="text-center my-auto copyright"><span>Copyright © imageapp 2025-2026</span></div>
+					<div class="text-center my-3 copyright"><span>Copyright © imageapp 2025-2026</span></div>
 				</div>
 			</footer>
 		</div><a class="border rounded d-inline scroll-to-top" href="#page-top"><i class="fas fa-angle-up"></i></a>
@@ -258,16 +264,44 @@
 
 		let folderHTML;
 
+		const getTodayDate = () => {
+			const today = new Date();
+			return today.toISOString().split('T')[0];
+		};
+
+		const getYesterdayDate = () => {
+			const yesterday = new Date();
+			yesterday.setDate(yesterday.getDate() - 1);
+			return yesterday.toISOString().split('T')[0];
+		};
+
+		function filterByToday() {
+			const today = getTodayDate();
+			photoBydate(today)
+		}
+
+		function filterByYesterday() {
+			const yesterday = getYesterdayDate();
+			photoBydate(yesterday)
+		}
+
 		document.getElementById('date').addEventListener('change', async function (event) {
 			const selectedDate = event.target.value;
+			photoBydate(selectedDate)
+		});
+
+		async function photoBydate(searchDate) {
 			const type = localStorage.getItem('type');
-			if (type === "1"){
+			if (type === "1") {
 				showErrorPopup('You can access the files by date')
+				return;
 			}
+
 			const data = {
 				foldersPath: foldersPath,
-				selectedDate: selectedDate
+				selectedDate: searchDate
 			};
+
 			document.getElementById('loader').style.display = "flex";
 			try {
 				const response = await fetch(`/api/getThumbnailbyDate`, {
@@ -280,7 +314,6 @@
 				});
 
 				const datass = await response.json();
-				
 
 				if (datass.result === "pass") {
 					document.getElementById('loader').style.display = "none";
@@ -295,7 +328,7 @@
 						const fileExtension = file.split('.').pop().toLowerCase();
 						if (['jpg', 'jpeg', 'png', 'gif'].includes(fileExtension)) {
 							const thumbnailDiv = document.createElement('div');
-							thumbnailDiv.classList.add('col-md-3', 'mb-4');
+							thumbnailDiv.classList.add('col-md-2', 'mb-4');
 
 							const imgElement = document.createElement('img');
 							imgElement.src = filePath;
@@ -352,7 +385,7 @@
 				document.getElementById('loader').style.display = "none ";
 				showErrorPopup('Something Went Wrong');
 			}
-		});
+		}
 
 
 		function displayFullScreenThumbnail(filePath) {
@@ -466,7 +499,7 @@
 			const relativePath = filePath.replace(/^.*\/imageapp/, '/imageapp').replace(/\\/g, '/');
 
 			// const relativePath = filePath.replace(/^D:/, '').replace(/\\/g, '/');
-			
+
 			const thumbnailView = document.getElementById('thumbnailView');
 			const thumbnailContainer = document.getElementById('thumbnailImage');
 			const fullscreenIcon = document.getElementById('fullscreenIcon');
@@ -480,7 +513,7 @@
 
 			const fileExtension = filePath.split('.').pop().toLowerCase();
 
-			
+
 
 			if (['jpg', 'jpeg', 'png', 'gif'].includes(fileExtension)) {
 				thumbnailContainer.innerHTML = `<img src="${relativePath}" alt="Thumbnail" />`;
