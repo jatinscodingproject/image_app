@@ -25,6 +25,7 @@ router.post('/createchildFolder' , checkTokenMiddleware, folderController.folder
 
 router.post('/getThumbnailbyDate' , checkTokenMiddleware, folderController.folderController.getThumbnailByDate)
 
+router.post('/searchFolders' , checkTokenMiddleware, folderController.folderController.searchFolders)
 
 module.exports = router
 

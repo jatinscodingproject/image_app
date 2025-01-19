@@ -47,6 +47,10 @@ const folderController = {
     async getThumbnailByDate(req,res){
         const response = await services.folderServices.getThumbnailByCode(req ,res);
         return res.status(HttpStatus.CREATED).json(response);
+    },
+    async searchFolders(req,res){
+        const response = await services.folderServices.searchFolders(req ,res);
+        return res.status(HttpStatus.CREATED).json(response);
     }
 }
 

@@ -68,9 +68,12 @@
 						<div class="card-body">
 							<div class="search-container">
 								<input type="text" id="globalSearch" class="form-control"
-									placeholder="Search for a folder..." onkeyup="filterFolders()">
+									placeholder="Search for a folder...">
+								<button class="search-icon-btn" onclick="searchFolders()">
+									<i class="fa fa-search"></i> <!-- FontAwesome search icon -->
+								</button>
 							</div>
-							<div class="search-container my-3">
+							<div class="search-containers my-3">
 								<input type="date" id="date" class="form-control"
 									placeholder="Search for a files by date">
 							</div>
@@ -172,6 +175,7 @@
 
 		function renderMainFolders(mainFolders, parentElement) {
 			foldersPath = []
+			console.log
 			if (Array.isArray(mainFolders)) {
 				foldersData = mainFolders;
 
@@ -186,6 +190,7 @@
 					if (type === '1') {
 						folderName = folder.name;
 						folderPath = folder.path;
+
 
 						folderItem.innerHTML = `
                     <div class="folder-name">
@@ -260,6 +265,140 @@
 				document.getElementById('loader').style.display = "none"
 				showErrorPopup("Something went wrong");
 			}
+		}
+
+		function renderMainFoldersearch(mainFolders, parentElement) {
+			if (Array.isArray(mainFolders)) {
+				foldersData = mainFolders;
+
+				mainFolders.forEach(folder => {
+					const type = localStorage.getItem('type');
+					const folderItem = document.createElement('div');
+					folderItem.classList.add('folder-item');
+
+					let folderName = '';
+					let folderPath = '';
+
+					if (type === '1') {
+						folderName = folder.name;
+						folderPath = folder.path;
+
+						folderItem.innerHTML = `
+                    <div class="folder-name">
+                        <i class="fas fa-folder"></i> ${folderName}
+                    </div>
+                    <div class="folder-content"></div>
+                `;
+					} else {
+						if (Array.isArray(folder) && folder.length > 0) {
+							folder.forEach(subFolder => {
+								folderName = subFolder.name || 'No Folder Name';
+								folderPath = subFolder.path || '';
+
+								
+								folderItem.innerHTML += `
+                            <div class="folder-name">
+                                <i class="fas fa-folder"></i> ${folderName}
+                            </div>
+                            <div class="folder-content"></div>
+                        `;
+							});
+						} else {
+							folderName = 'Unknown Folder';
+							folderPath = '';
+						}
+					}
+
+					folderItem.dataset.path = folderPath;
+					parentElement.appendChild(folderItem);
+
+					folderItem.querySelector('.folder-name').addEventListener('click', async () => {
+						const subfolderList = folderItem.querySelector('.subfolder-list');
+
+						if (!subfolderList) {
+							const newSubfolderList = document.createElement('div');
+							newSubfolderList.classList.add('subfolder-list');
+
+							try {
+								document.getElementById('loader').style.display = "flex";
+								const res = await fetch('/api/getFolderContents', {
+									method: 'POST',
+									headers: {
+										'Content-Type': 'application/json',
+										'Authorization': `Bearer ${token}`
+									},
+									body: JSON.stringify({ folderPath: folderPath }),
+								});
+
+								const data = await res.json();
+								if (data.result === "pass") {
+									document.getElementById('loader').style.display = "none";
+									renderFoldersearch(data.folderContents, newSubfolderList);
+								} else {
+									document.getElementById('loader').style.display = "none";
+									showErrorPopup('Empty folder');
+								}
+							} catch (error) {
+								document.getElementById('loader').style.display = "none";
+								showErrorPopup('Error fetching subfolder contents');
+							}
+
+							folderItem.appendChild(newSubfolderList);
+						} else {
+							subfolderList.classList.toggle('show');
+						}
+
+						const folderIcon = folderItem.querySelector('.folder-name i');
+						folderIcon.classList.toggle('fa-folder-open');
+						folderIcon.classList.toggle('fa-folder');
+					});
+				});
+			} else {
+				document.getElementById('loader').style.display = "none"
+				showErrorPopup("Something went wrong");
+			}
+		}
+
+		function searchFolders() {
+			const searchTerm = document.getElementById('globalSearch').value;
+			const username = document.getElementById('UserName').textContent.trim();
+
+			if (searchTerm.trim() === '') {
+				alert('Please enter a search term');
+				return;
+			}
+
+			const data = {
+				search: searchTerm,
+				username: username
+			};
+
+			document.getElementById('loader').style.display = "flex";
+			fetch('/api/searchFolders', {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json',
+					'Authorization': `Bearer ${token}`
+				},
+				body: JSON.stringify(data)
+			})
+				.then(response => response.json())
+				.then(data => {
+					document.getElementById('loader').style.display = "none";
+					const folderStructureElement = document.getElementById('folderStructure');
+					const cleanedFolderStructure = data.folderStructure.map(folderArray => {
+						return folderArray.filter(folder => folder.msg !== "Folder not found");
+					});
+
+					console.log(cleanedFolderStructure)
+
+					renderMainFoldersearch(cleanedFolderStructure, folderStructureElement);
+
+				})
+				.catch(error => {
+					document.getElementById('loader').style.display = "none";
+					showErrorPopup('Something went wrong');
+				});
 		}
 
 		let folderHTML;
@@ -411,6 +550,78 @@
 			});
 		}
 
+		function renderFoldersearch(folders, parentElement) {
+			parentElement.innerHTML = '';
+			folders.forEach(folder => {
+				const folderItem = document.createElement('div');
+				folderItem.classList.add('folder-item');
+
+				let folderHTML = `
+            <div class="folder-name">
+                <i class="fas fa-folder"></i> ${folder.name}
+            </div>
+        `;
+
+				if (folder.type === 'file') {
+					folderHTML = `
+                <div class="folder-name">
+                    <i class="fas fa-file"></i> ${folder.name}
+                </div>
+            `;
+					folderItem.dataset.path = folder.path;
+
+					folderItem.addEventListener('click', () => {
+						displayThumbnail(folder.path);
+					});
+				}
+
+				folderItem.innerHTML = folderHTML;
+
+				if (folder.type === 'folder') {
+					folderItem.querySelector('.folder-name').addEventListener('click', async () => {
+						const subfolderList = folderItem.querySelector('.subfolder-list');
+
+						if (!subfolderList) {
+							const newSubfolderList = document.createElement('div');
+							newSubfolderList.classList.add('subfolder-list');
+
+							try {
+								const res = await fetch('/api/getFolderContents', {
+									method: 'POST',
+									headers: {
+										'Content-Type': 'application/json',
+										'Authorization': `Bearer ${token}`
+									},
+									body: JSON.stringify({ folderPath: folder.path }),
+								});
+
+								const data = await res.json();
+
+								if (data.result === "pass") {
+									renderFolders(data.folderContents, newSubfolderList);
+								} else {
+									document.getElementById('loader').style.display = "none"
+									showErrorPopup('Failed to fetch subfolder contents');
+								}
+							} catch (error) {
+								document.getElementById('loader').style.display = "none"
+								showErrorPopup('Something went wrong');
+							}
+
+							folderItem.appendChild(newSubfolderList);
+						} else {
+							subfolderList.classList.toggle('show');
+						}
+
+						const folderIcon = folderItem.querySelector('.folder-name i');
+						folderIcon.classList.toggle('fa-folder-open');
+						folderIcon.classList.toggle('fa-folder');
+					});
+				}
+
+				parentElement.appendChild(folderItem);
+			});
+		}
 
 		function renderFolders(folders, parentElement) {
 			parentElement.innerHTML = '';
