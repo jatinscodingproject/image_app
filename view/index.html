@@ -66,6 +66,11 @@
 							<p class="text-primary m-0 fw-bold">Accessible Folders</p>
 						</div>
 						<div class="card-body">
+							<div class="refresh-btn-container mb-3 d-flex justify-content-center">
+								<button class="btn btn-success" onclick="refreshFolders()">
+									<i class="fa fa-sync-alt"></i> Refresh
+								</button>
+							</div>
 							<div class="search-container">
 								<input type="text" id="globalSearch" class="form-control"
 									placeholder="Search for a folder...">
@@ -173,6 +178,11 @@
 		});
 		const token = localStorage.getItem('token')
 
+		function refreshFolders() {
+			// document.getElementById('loader').style.display = "flex"
+			location.reload()
+		}
+
 		function renderMainFolders(mainFolders, parentElement) {
 			foldersPath = []
 			console.log
@@ -268,6 +278,7 @@
 		}
 
 		function renderMainFoldersearch(mainFolders, parentElement) {
+			console.log(mainFolders)
 			if (Array.isArray(mainFolders)) {
 				foldersData = mainFolders;
 
@@ -284,29 +295,31 @@
 						folderPath = folder.path;
 
 						folderItem.innerHTML = `
-                    <div class="folder-name">
-                        <i class="fas fa-folder"></i> ${folderName}
-                    </div>
-                    <div class="folder-content"></div>
-                `;
+							<div class="folder-name">
+								<i class="fas fa-folder"></i> ${folderName}
+							</div>
+							<div class="folder-content"></div>
+						`;
 					} else {
-						if (Array.isArray(folder) && folder.length > 0) {
+						// if (Array.isArray(folder) && folder.length > 0) {
 							folder.forEach(subFolder => {
 								folderName = subFolder.name || 'No Folder Name';
 								folderPath = subFolder.path || '';
+								console.log(name)
 
-								
 								folderItem.innerHTML += `
-                            <div class="folder-name">
-                                <i class="fas fa-folder"></i> ${folderName}
-                            </div>
-                            <div class="folder-content"></div>
-                        `;
+									<div class="folder-name">
+										<i class="fas fa-folder"></i> ${folderName}
+									</div>
+									<div class="folder-content"></div>
+								`;
+								console.log(folderItem)
 							});
-						} else {
-							folderName = 'Unknown Folder';
-							folderPath = '';
-						}
+						// } 
+						// else {
+						// 	folderName = 'Unknown Folder';
+						// 	folderPath = '';
+						// }
 					}
 
 					folderItem.dataset.path = folderPath;
@@ -364,7 +377,7 @@
 			const username = document.getElementById('UserName').textContent.trim();
 
 			if (searchTerm.trim() === '') {
-				alert('Please enter a search term');
+				showErrorPopup('Please enter a search term');
 				return;
 			}
 
@@ -384,18 +397,25 @@
 			})
 				.then(response => response.json())
 				.then(data => {
+
 					document.getElementById('loader').style.display = "none";
 					const folderStructureElement = document.getElementById('folderStructure');
+					console.log(data)
 					const cleanedFolderStructure = data.folderStructure.map(folderArray => {
 						return folderArray.filter(folder => folder.msg !== "Folder not found");
 					});
-
+					console.log(typeof (cleanedFolderStructure))
 					console.log(cleanedFolderStructure)
-
-					renderMainFoldersearch(cleanedFolderStructure, folderStructureElement);
+					if (Object.values(cleanedFolderStructure).every(arr => arr.length === 0)) {
+						showErrorPopup('No folder present by the same name you have searched');
+					} else {
+						console.log(9999999999999)
+						renderMainFoldersearch(cleanedFolderStructure, folderStructureElement);
+					}
 
 				})
 				.catch(error => {
+					console.log(error)
 					document.getElementById('loader').style.display = "none";
 					showErrorPopup('Something went wrong');
 				});

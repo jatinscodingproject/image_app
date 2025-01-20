@@ -21,43 +21,36 @@ function getAllParentFolders(baseDir) {
 
 
 function searchFolders(directoryPath, searchTerm) {
-    // Check if the provided directory exists
     if (!fs.existsSync(directoryPath)) {
         throw new Error(`Directory not found: ${directoryPath}`);
     }
 
     const items = fs.readdirSync(directoryPath, { withFileTypes: true });
 
-    // Initialize a result array to hold found folders
     let result = [];
 
-    // Iterate through each item in the directory
     for (let dirent of items) {
         const fullPath = path.join(directoryPath, dirent.name);
         
-        // If it's a directory and the name matches the search term, add it to the result
         if (dirent.isDirectory()) {
             if (dirent.name.toLowerCase().includes(searchTerm.toLowerCase())) {
                 result.push({
                     name: dirent.name,
                     path: fullPath,
                     type: 'folder',
-                    children: []  // We won't need to go deeper if the match is found here
+                    children: []
                 });
             }
 
-            // Recursively search in subdirectories
             const subResult = searchFolders(fullPath, searchTerm);
-            result = result.concat(subResult);  // Combine results from subdirectories
+            result = result.concat(subResult);
         }
     }
 
-    // If no folders matched, return a folder not found message
     if (result.length === 0) {
         return [{ msg: "Folder not found", result: "fail" }];
     }
 
-    // Otherwise, return the found folder(s)
     return result;
 }
 
@@ -144,10 +137,9 @@ async function getSubfolderssss(directoryPath) {
     try {
         const filesAndFolders = await fs.promises.readdir(directoryPath, { withFileTypes: true });
 
-        // Return the full path for each subfolder
         return filesAndFolders
-            .filter((item) => item.isDirectory()) // Filter only directories
-            .map((folder) => path.join(directoryPath, folder.name)); // Return full path of each subfolder
+            .filter((item) => item.isDirectory())
+            .map((folder) => path.join(directoryPath, folder.name));
     } catch (error) {
         console.error('Error reading directory:', error);
         return [];
@@ -162,10 +154,9 @@ async function getAllFilesInFolder(directoryPath) {
         for (let item of items) {
             const fullPath = path.join(directoryPath, item.name);
 
-            // If it's a folder, recurse into it
             if (item.isDirectory()) {
-                const subfolderFiles = await getAllFilesInFolder(fullPath); // Recursively fetch files from subfolder
-                results = results.concat(subfolderFiles); // Add subfolder files to results
+                const subfolderFiles = await getAllFilesInFolder(fullPath);
+                results = results.concat(subfolderFiles);
             } else {
 
                 results.push(fullPath);
@@ -563,6 +554,7 @@ const folderServices = {
             return { msg: 'something went wrong', result: "fail" };
         }
     },
+    
     async searchFolders(req, res) {
         const { username, search } = req.body;
 
